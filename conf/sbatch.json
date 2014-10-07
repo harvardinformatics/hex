@@ -1,0 +1,124 @@
+{
+        "name" : "sbatch",
+        "version" : "14.03.8",
+        "bin" : "sbatch",
+        "description" : "sbatch  submits  a  batch script to SLURM.",
+        "parameterdefs" : [
+            {
+                "name" : "array",
+                "description" : "Submit a job array, multiple jobs to be executed with identical parameters.",
+                "switches" : ["-a","--array"],
+                "pattern" : "--array=<VALUE>",
+                "required" : "no"
+            },
+            {
+                "name" : "account",
+                "description" : "Charge resources used by this job to specified account.",
+                "switches" : ["--account","-A"],
+                "pattern" : "--account=<VALUE>",
+                "required" : "no"
+            },
+            {
+                "name" : "begin",
+                "description" : "Submit  the  batch  script  to  the SLURM controller immediately, like normal, but tell the controller to defer the allocation of the job until the specified time.",
+                "validator" : "cmd.slurm.validators.BeginTimeValidator",
+                "switches" : ["--begin <VALUE>"],
+                "pattern" : "--begin=<VALUE>",
+                "required" : "no"
+            },
+            {
+                "name" : "comment",
+                "description" : "An arbitrary comment enclosed in double quotes if using spaces or some special characters.",
+                "switches" : ["--comment"],
+                "pattern" : "--comment='<VALUE>'",
+                "required" : "no"
+            },
+            {
+                "name" : "constraint",
+                "description" : "Only nodes having features matching the job constraints will be used to satisfy the request.",
+                "switches" : ["--constraint","-C"],
+                "pattern" : "--constraint='<VALUE>'",
+                "required" : "no"
+            },
+            {
+                "name" : "contiguous",
+                "description" : "If set, then the allocated nodes must form a contiguous set.",
+                "switches" : ["--contiguous"],
+                "pattern" : "--contiguous",
+                "required" : "no"
+            },
+            {
+                "name" : "cores_per_socket",
+                "description" : "Restrict node selection to nodes with at least the specified number of cores per socket.",
+                "switches" : ["--cores-per-socket"],
+                "pattern" : "--cores-per-socket=<VALUE>",
+                "required" : "no"
+            },
+            {
+                "name" : "cpus_per_task",
+                "description" : "Advise the SLURM controller that ensuing job steps will require ncpus  number  of  processors  per  task.",
+                "switches" : ["--cpus-per-task","-c"],
+                "pattern" : "--cpus-per-task=<VALUE>",
+                "required" : "no"
+            },
+            {
+                "name" : "dependency",
+                "description" : "Defer  the  start  of  this  job until the specified dependencies have been satisfied.",
+                "switches" : ["--dependency","-d"],
+                "pattern" : "--dependency='<VALUE>'",
+                "required" : "no"
+            },
+            {
+                "name" : "workdir",
+                "description" : "Set  the working directory of the batch script before it is executed.",
+                "switches" : ["--workdir","-D"],
+                "pattern" : "--workdir='<VALUE>'",
+                "required" : "no",
+                "validator" : "cmd.validators.PathValidator"
+            },
+            {
+                "name" : "error",
+                "description" : "Instruct SLURM to connect the batch script standard error directly to the file name specified",
+                "switches" : ["--error","-e"],
+                "pattern" : "--error='<VALUE>'",
+                "required" : "no",
+                "validator" : "cmd.validators.PathValidator"
+            },
+            {
+                "name" : "exclusive",
+                "description" : "The job allocation can not share nodes with other running jobs.",
+                "switches" : ["--exclusive"],
+                "pattern" : "--exclusive",
+                "required" : "no"
+            },
+            {
+                "name" : "export",
+                "description" : "Identify which environment variables are propagated to the batch job.",
+                "switches" : ["--export"],
+                "pattern" : "--export='<VALUE>'",
+                "required" : "no"
+            },
+            {
+                "name" : "export_file",
+                "description" : "Export  environment  variables  defined in a filename or numerical file descriptor.",
+                "switches" : ["--export-file"],
+                "pattern" : "--export-file='<VALUE>'",
+                "required" : "no"
+            },
+            {
+                "name" : "nodefile",
+                "description" : "List of nodes in a file",
+                "switches" : ["--nodefile","-F"],
+                "pattern" : "--nodefile='<VALUE>'",
+                "required" : "no",
+                "validator" : "cmd.validators.PathValidator"
+            },
+            {
+                "name" : "get_user_env",
+                "description" : "This  option  will  tell sbatch to retrieve the login environment variables for the user specified in the --uid option.",
+                "switches" : ["--get-user-env"],
+                "pattern" : "--get-user-env=<VALUE>",
+                "required" : "no"
+            }
+        ]
+}

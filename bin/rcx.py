@@ -22,7 +22,7 @@ For the process, the following values are logged:
     
 """
 
-import sys
+import sys, os
 from cmd import Command,getClassFromName
 
 from argparse import ArgumentParser, RawDescriptionHelpFormatter, REMAINDER
@@ -69,17 +69,19 @@ def main():
     
     runargs = {}
     if args.rcx_stdoutfile:
-        runargs['stdoutfile'] = args.rcx_stdoutfile
+        runargs['stdoutfile'] = os.path.abspath(args.rcx_stdoutfile)
     if args.rcx_stderrfile:
-        runargs['stderrfile'] = args.rcx_stderrfile
+        runargs['stderrfile'] = os.path.abspath(args.rcx_stderrfile)
     if args.rcx_runsetname:
         runargs['runsetname'] = args.rcx_runsetname
     
     h = runner.run(' '.join(args.cmd),**runargs)
     if args.rcx_jobtype == 'run':
         h.wait()
-        
-    print h.stdoutstr
+        print h.stdoutstr
+    else:
+        print h.jobid
+    
         
 
 if __name__ == "__main__":

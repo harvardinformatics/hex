@@ -33,8 +33,13 @@ print slurmcmd.script
 import os,sys,subprocess,socket,time
 import tempfile
 import datetime
+
 import yaml
 from string import Template
+
+import json
+
+DEFAULT_PDEF_PATH='../conf'
 
 def getClassFromName(classname):
     parts = classname.split('.')
@@ -174,10 +179,32 @@ class ProjectFileLogger(FileLogger):
         if not os.path.exists(pathname):
             os.makedirs(pathname)
         super(ProjectFileLogger,self).__init__(pathname)
+            
+
+
+class ParameterDef(object):
+    """
+    Command parameter definition
+    """
+    def __init__(self,name=None,required='no',switches=[],pattern=None,description="",validator='cmd.validators.StringValidator'):
+        if name is None:
+            raise Exception("ParameterDef must have a name")
+        if pattern is None:
+            raise Exception("ParameterDef must have a pattern")
+        self.name = name
+        self.required = required
+        self.switches = switches
+        self.pattern = pattern
+        self.description = description
+        validator = getClassFromName(validator)
+        self.validator = validator()
         
-
-
-
+    def isValid(self,value):
+        """
+        Use specified validator object to check value
+        """
+        return self.validator.isValid(value)
+        
 
  
 class Command(object):
@@ -186,6 +213,30 @@ class Command(object):
     validate and interrogate arguments.  It can also be used with a plain string
     command or an array of command elements.
     """
+    @classmethod
+    def fetch(cls,name,path=DEFAULT_PDEF_PATH):
+        """
+        Create a Command object using a JSON definition file
+        """
+        if not name.endswith('.json'):
+            name = name + '.json'
+        pardata = {}
+        with open(os.path.join(path,name),'r') as pdeffile:
+            pardata = json.load(pdeffile)
+        if pardata is None:
+            raise Exception("No command defined in %s" % path)
+        cmd = Command()
+        cmd.name        = pardata["name"]
+        cmd.bin         = pardata["bin"]
+        cmd.version     = pardata["version"]
+        cmd.description = pardata["description"]
+        
+        parameterdefs = []
+        for pdef in pardata["parameterdefs"]:
+            parameterdefs.append(ParameterDef(**pdef))
+        cmd.setParameterDefs(parameterdefs)
+        return cmd
+        
     def __init__(self,*args,**kwargs):
         """
         Initialize the command object.  There are multiple modes:
@@ -287,6 +338,28 @@ class Command(object):
              
         self.cmdparametervalues[arg] = value    
          
+    def getParameterDef(self,key):
+        """
+        Finds a matching parameter def based on name or switch
+        """
+        if key in self.parameterdefs:
+            return self.parameterdefs[key]
+        else:
+            for pdef in self.parameterdefs:
+                switches = pdef.switches
+                if key in switches:
+                    return pdef
+            return None
+        
+    
+    def setParameterDefs(self,parameterdefs):
+        """
+        Setup name-keyed parameter list
+        """
+        self.parameterdefs = {}
+        for pdef in parameterdefs:
+            self.parameterdefs[pdef.name] = pdef
+        
               
     def isValid(self):
         """
@@ -305,6 +378,7 @@ class Command(object):
                 return True
         else:
             return True
+                
  
              
 # class ScriptCommand(Command):
@@ -404,10 +478,12 @@ class ShellRunner(object):
         stderr = open(stderrfile,'w')
          
         hostname = socket.gethostname().split('.',1)[0]
-        proc = subprocess.Popen(cmd,shell=True,stdout=stdout,stderr=stderr)
-        starttime = datetime.datetime.now()
-        runset = []
-        runset.append(  RunLog( jobid=proc.pid,
+        pid = os.fork()
+        if pid == 0:
+            proc = subprocess.Popen(cmd,shell=True,stdout=stdout,stderr=stderr)
+            starttime = datetime.datetime.now()
+            runset = []
+            runset.append(  RunLog( jobid=proc.pid,
                                 cmdstring=cmd,
                                 starttime=starttime,
                                 hostname=hostname,
@@ -417,8 +493,11 @@ class ShellRunner(object):
                                 )
                       )
         #print "Path is %s Runset name is %s" % (logger.pathname, runsetname)
-        logger.saveRunSet(runset, runsetname)
-        return proc
+            logger.saveRunSet(runset, runsetname)
+            os._exit(0)
+        else:
+            time.sleep(1)
+        return None
      
      
 class RunHandler(object):
