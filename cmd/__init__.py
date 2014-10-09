@@ -518,9 +518,10 @@ class ShellRunner(object):
     Environment for the command execution can be set, including working directory.
     """
      
-    def __init__(self,logger=DefaultFileLogger(),verbose=0):
+    def __init__(self,logger=DefaultFileLogger(),verbose=0,usevenv=False):
         self.logger = logger
         self.verbose = verbose
+        self.usevenv = usevenv
      
     def checkStatus(self,runlog=None,proc=None):
         """
@@ -571,6 +572,12 @@ class ShellRunner(object):
         """
         Returns the command string, using the Command.composeCmdString()
         """
+        cmdstring = cmd.composeCmdString()
+        if self.usevenv:
+            if "VIRTUAL_ENV" in os.environ:
+                cmdstring += "source %s/bin/activate && " % os.environ["VIRTUAL_ENV"]
+            elif "CONDA_DEFAULT_ENV" in os.environ:
+                cmdstring += "source activate %s &&" % os.environ["CONDA_DEFAULT_ENV"]
         return cmd.composeCmdString()
     
 
