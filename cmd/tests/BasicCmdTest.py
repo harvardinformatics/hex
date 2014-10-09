@@ -31,8 +31,8 @@ n="0"
  
 while [[ $n -lt 40 ]]
 do
-  echo "All work and no play makes Jack a dull boy" >/dev/stderr
-  echo "All work and no play makes Jane a dull girl" >/dev/stdout
+  echo "All work and no play makes Jack a dull boy" >&2
+  echo "All work and no play makes Jane a dull girl"
   sleep 2 
   n=$[$n + 1]
  
@@ -215,7 +215,7 @@ exit 2
         cmdstring = "%s../../bin/rcx.py echo 'Hello'" % self.activatevenv    
         p  = subprocess.Popen(cmdstring,shell=True,stdout=subprocess.PIPE)
         (out,err) = p.communicate()
-        self.assertTrue("Hello" in out,out)
+        self.assertTrue("Hello" in out,"Cmdstring: %s stdout: %s stderr: %s" % (cmdstring,out,err))
          
         # Set stderr and stdout files; check contents
          
