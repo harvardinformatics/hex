@@ -23,7 +23,7 @@ class SbatchCommand(Command):
         self.scriptpath = scriptpath
         
     def composeCmdString(self):
-        cmdstring = ""
+        cmdstring = "#!/bin/bash\n"
         
         # Determines if the argument pattern is an optional one
         optionalargre = re.compile("\?.+?\?")
