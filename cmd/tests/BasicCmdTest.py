@@ -50,11 +50,11 @@ n="0"
  
 while [[ $n -lt 10 ]]
 do
-  echo "All work and no play makes Jane a dull girl" >/dev/stdout
+  echo "All work and no play makes Jane a dull girl"
   sleep 2 
   n=$[$n + 1]
 done
-echo "Fail!" >/dev/stderr
+echo "Fail!" >&2
 exit 2
         '''.strip()
          
