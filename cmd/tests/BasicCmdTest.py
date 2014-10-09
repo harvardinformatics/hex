@@ -19,6 +19,11 @@ import datetime
 class Test(unittest.TestCase):
         
     def setUp(self):
+        
+        self.activatevenv = ""
+        if "VIRTUAL_ENV" in os.environ:
+            self.activatevenv = "source %s/bin/activate && " % os.environ["VIRTUAL_ENV"]
+
         script = '''
 #!/bin/bash
  
@@ -207,14 +212,14 @@ exit 2
         """
         
         # Test with minimum parameters (execute command and return stdout)
-        cmdstring = "source $HOME/.envs/2.6/bin/activate && ../../bin/rcx.py echo 'Hello'"
+        cmdstring = "%s../../bin/rcx.py echo 'Hello'" % self.activatevenv    
         p  = subprocess.Popen(cmdstring,shell=True,stdout=subprocess.PIPE)
         (out,err) = p.communicate()
         self.assertTrue("Hello" in out,out)
          
         # Set stderr and stdout files; check contents
          
-        cmdstring = "source $HOME/.envs/2.6/bin/activate && ../../bin/rcx.py --rcx-stderr=stderr --rcx-stdout=stdout bash fail.sh"
+        cmdstring = "%s../../bin/rcx.py --rcx-stderr=stderr --rcx-stdout=stdout bash fail.sh" % self.activatevenv
         p  = subprocess.Popen(cmdstring,shell=True,stdout=subprocess.PIPE)
         (out,err) = p.communicate()
         out = []
@@ -235,7 +240,7 @@ exit 2
         
         cwd = os.getcwd()
         testyamlfile = "test.yaml"
-        cmdstring = "source $HOME/.envs/2.6/bin/activate && ../../bin/rcx.py --rcx-jobtype=submit --rcx-stderr=stderr --rcx-stdout=stdout --rcx-runsetpath=%s --rcx-runsetname=test bash fail.sh" % cwd
+        cmdstring = "%s../../bin/rcx.py --rcx-jobtype=submit --rcx-stderr=stderr --rcx-stdout=stdout --rcx-runsetpath=%s --rcx-runsetname=test bash fail.sh" % (self.activatevenv, cwd)
         p  = subprocess.Popen(cmdstring,shell=True,stdout=subprocess.PIPE)
         pid = p.pid
         time.sleep(1)
