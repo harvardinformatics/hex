@@ -1,0 +1,48 @@
+{
+        "name" : "argtest",
+        "version" : "1",
+        "bin" : "argtest.py",
+        "description" : "Test executable",
+        "parameterdefs" : [
+            {
+                "name" : "boolean_option",
+                "description" : "Option is on or off",
+                "switches" : ["--boolean-option"],
+                "pattern" : "--boolean-option",
+                "required" : "no",
+                "order" : "1"
+            },
+            {
+                "name" : "optional_option",
+                "description" : "Option may or may not have a value",
+                "switches" : ["--optional-option"],
+                "pattern" : "--optional-option?=<VALUE>?",
+                "required" : "no",
+                "order" : "2"
+            },
+            {
+                "name" : "option",
+                "description" : "Option with a value",
+                "switches" : ["--option"],
+                "pattern" : "--option=<VALUE>",
+                "required" : "no",
+                "order" : "3"
+            },
+            {
+                "name" : "quoted_option",
+                "description" : "Option with a value surrounded by single quotes",
+                "switches" : ["--quoted-option"],
+                "pattern" : "--quoted-option=\"<VALUE>\"",
+                "required" : "no",
+                "order" : "4"
+            },
+            {
+                "name" : "argument",
+                "description" : "Argument with no switch, should be at the end",
+                "switches" : [""],
+                "pattern" : "\"<VALUE>\"",
+                "required" : "yes",
+                "order" : "10"
+            }
+       ]
+}

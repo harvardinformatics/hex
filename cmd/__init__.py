@@ -15,23 +15,24 @@ bowtie2project.inputpaths.append("/data/sequences2")
 
 bowtiecmd = Command("bowtie2",x="/path/to/index",U="/path/to/unpaired")
 dockercmd = Command("docker","run","bowtie:1.0")
-slurmcmd  = Command("sbatch",n="4",N="1",contiguous="true",scriptname="docker-bowtie2.sbatch")
+slurmcmd  = Command("sbatch",n="4",N="1",contiguous=True,scriptname="docker-bowtie2.sbatch")
 
 result = ShellRunner.run(slurmcmd).run(dockercmd).run(bowtiecmd)
 print result.paramsOk()
 > True
 print result.cmdstring
-> submit.py sbatch docker-bowtie2.sbatch
+> rcx.py sbatch docker-bowtie2.sbatch
 print slurmcmd.script
 > #/bin/bash
 > #SBATCH -n 4
 > #SBATCH -N 1
 > #SBATCH --contiguous
-> run.py --run-project testproject --run-logdir mydir docker run bowtie:1.0 run.py --run-project testproject --run-logdir mydir bowtie2 -x /path/to/index -U /path/to/unpaired
+> rcx.py --run-project testproject --run-logdir mydir docker run bowtie:1.0 rcx.py --run-project testproject --run-logdir mydir bowtie2 -x /path/to/index -U /path/to/unpaired
 
 """
 import os,sys,subprocess,socket,time
 import tempfile
+import re
 import datetime
 
 import yaml
@@ -64,10 +65,7 @@ class RunLog(dict):
             
         if 'runner' not in kwargs:
             self['runner'] = "cmd.ShellRunner"
-            
-    def __str__(self):
-        return str(self.attrs)
-    
+                
     def getStdOut(self):
         """
         Get a file handle for stdout
@@ -101,6 +99,9 @@ class FileLogger(object):
         
         
     def getRunSet(self,runsetname):
+        """
+        Reads the runset from a yaml file and returns
+        """
         runsetfilename = os.path.join(self.pathname,runsetname)
         runsetfilename += ".yaml"
         
@@ -116,6 +117,10 @@ class FileLogger(object):
         return result
   
     def saveRunSet(self,runset,runsetname):
+        """
+        Saves RunSet in yaml form
+        """
+        
         data = []
         for runlog in runset:
             for key in ['starttime','endtime']:
@@ -186,7 +191,7 @@ class ParameterDef(object):
     """
     Command parameter definition
     """
-    def __init__(self,name=None,required='no',switches=[],pattern=None,description="",validator='cmd.validators.StringValidator'):
+    def __init__(self,name=None,required='no',switches=[],pattern=None,description="",validator='cmd.validators.StringValidator',order=0):
         if name is None:
             raise Exception("ParameterDef must have a name")
         if pattern is None:
@@ -196,6 +201,7 @@ class ParameterDef(object):
         self.switches = switches
         self.pattern = pattern
         self.description = description
+        self.order = order
         validator = getClassFromName(validator)
         self.validator = validator()
         
@@ -225,7 +231,10 @@ class Command(object):
             pardata = json.load(pdeffile)
         if pardata is None:
             raise Exception("No command defined in %s" % path)
-        cmd = Command()
+        if "cmdclass" not in pardata:
+            pardata["cmdclass"] = "cmd.Command"
+        cls = getClassFromName(pardata["cmdclass"])
+        cmd = cls()
         cmd.name        = pardata["name"]
         cmd.bin         = pardata["bin"]
         cmd.version     = pardata["version"]
@@ -309,19 +318,83 @@ class Command(object):
         if hasattr(self,"cmdarray") and len(self.cmdarray)  > 0:
             cmdstring += " ".join(self.cmdarray)
         if hasattr(self,"cmdparametervalues"):
-            for k,v in self.cmdparametervalues.iteritems():
-                if not k.startswith("-"):
-                    if len(k) == 1:
-                        k = "-" + k
+            if not hasattr(self,"parameterdefs"):
+                for k,v in self.cmdparametervalues.iteritems():
+                    if not k.startswith("-"):
+                        if len(k) == 1:
+                            k = "-" + k
+                        else:
+                            k = "--" + k
+                    if v == False:
+                        continue
+                    if v == True:
+                        cmdstring += " %s" % k
                     else:
-                        k = "--" + k
-                if v == False:
-                    continue
-                if v == True:
-                    cmdstring += " %s" % k
+                        cmdstring += " %s=%s" % (k,v)
+            else:
+                # This is the branch for commands defined by parameter defs
+                # Tool name should be in the "bin" attribute                
+                if hasattr(self,"bin"):
+                    cmdstring = self.bin
                 else:
-                    cmdstring += " %s=%s" % (k,v)
-        return cmdstring
+                    raise Exception("Specified command must have a 'bin' attribute.")
+                
+                # Determines if the argument pattern is an optional one
+                optionalargre = re.compile("\?.+?\?")
+                
+                # Determines if the argument pattern has quoting of the <VALUE>
+                quotecheckre = re.compile("(\S)<VALUE>(\S)")                
+                
+                # Go through the parameter defs in order and 
+                # for any parameter with a value, substitute the value into the 
+                # "pattern"
+                
+                # Sort the parameterdef keys based on pdef.order
+                sortednames = sorted(self.parameterdefs.iterkeys(),key=lambda name: int(self.parameterdefs[name].order))
+                
+                for pname in sortednames:
+                    pdef = self.parameterdefs[pname]
+                    if pname in self.cmdparametervalues:
+                        value = self.cmdparametervalues[pname]
+                        
+                        if value == False:
+                            continue
+                        
+                        # If <VALUE> is surrounded by something (e.g. single quotes)
+                        # then we should make sure that char is escaped in the value
+                        quotestring = None
+                        match = quotecheckre.search(pdef.pattern)
+                        if match is not None:
+                            if len(match.groups()) == 2:
+                                if match.group(1) == match.group(2):
+                                    quotestring = match.group(1)
+                                    
+                        # Do some courtesy escaping
+                        if isinstance(value,basestring) and quotestring is not None:
+                            # Remove existing escapes
+                            value = value.replace("\\" + quotestring,quotestring)
+                            # Escape the quote
+                            value = value.replace(quotestring,"\\" + quotestring)
+                            
+                        
+                        # Substitute the value into the pattern
+                        if optionalargre.search(pdef.pattern) is not None:
+                            
+                            # This is the case of a switch with an optional argument
+                            if value == True:
+                                # Adding the switch with no argument
+                                cmdstring += " %s" % optionalargre.sub("",pdef.pattern)
+                            else:
+                                # Remove the question marks and substitute the VALUE
+                                cmdstring += " %s" % pdef.pattern.replace("?","").replace("<VALUE>",value)
+                                
+                        else:
+                            if value == True:
+                                cmdstring += " %s" % pdef.pattern
+                            else:
+                                cmdstring += " %s" % pdef.pattern.replace("<VALUE>",value)
+                                                    
+        return cmdstring.encode('ascii','ignore')
          
      
      
@@ -378,6 +451,26 @@ class Command(object):
                 return True
         else:
             return True
+        
+        
+    def __dir__(self):
+        keys = self.__dict__.keys()
+        if "parameterdefs" in self.__dict__:
+            keys = list(set(keys + self.parameterdefs.keys()))
+        return sorted(keys)
+        
+    
+    def __getattr__(self,name):
+        if "parameterdefs" in self.__dict__ and name in self.parameterdefs:
+            return self.cmdparametervalues[name]
+        else:
+            return self.__dict__[name]
+    
+    def __setattr__(self,name,value):
+        if "parameterdefs" in self.__dict__ and name in self.parameterdefs:
+            self.setArgValue(name, value)
+        else:
+            self.__dict__[name] = value
                 
  
              
@@ -396,7 +489,25 @@ class Command(object):
 #         pass
 #             
 #   
-#             
+#       
+
+class Env(dict):
+    """
+    Dictionary that can be used to set environment variables in a runner
+    """
+    def prepend_path(self,path,value):
+        """
+        Prepends a path element to a PATH-like variable
+        """
+        if path not in self:
+            self[path] = os.environ.get(path)
+        if self[path] is None:
+            self[path] = value
+        else:
+            self[path] = ':'.join(value,self[path])
+                
+            
+              
 class ShellRunner(object):
     """
     Runs a Command object and returns a result.  The result is where all the action
@@ -407,8 +518,9 @@ class ShellRunner(object):
     Environment for the command execution can be set, including working directory.
     """
      
-    def __init__(self,logger=DefaultFileLogger()):
+    def __init__(self,logger=DefaultFileLogger(),verbose=0):
         self.logger = logger
+        self.verbose = verbose
      
     def checkStatus(self,runlog=None,proc=None):
         """
@@ -483,15 +595,17 @@ class ShellRunner(object):
             proc = subprocess.Popen(cmd,shell=True,stdout=stdout,stderr=stderr)
             starttime = datetime.datetime.now()
             runset = []
-            runset.append(  RunLog( jobid=proc.pid,
-                                cmdstring=cmd,
-                                starttime=starttime,
-                                hostname=hostname,
-                                stdoutfile=stdoutfile,
-                                stderrfile=stderrfile,
-                                runner="%s.%s" % (self.__module__, self.__class__.__name__)
-                                )
-                      )
+            runlog = RunLog( jobid=proc.pid,
+                             cmdstring=cmd,
+                             starttime=starttime,
+                             hostname=hostname,
+                             stdoutfile=stdoutfile,
+                             stderrfile=stderrfile,
+                             runner="%s.%s" % (self.__module__, self.__class__.__name__)
+            )
+            runset.append(runlog)
+            if self.verbose > 0:
+                print runlog
         #print "Path is %s Runset name is %s" % (logger.pathname, runsetname)
             logger.saveRunSet(runset, runsetname)
             os._exit(0)
