@@ -8,7 +8,8 @@ All rights reserved.
 """
 import sys,os
 import unittest
-from cmd import Command,ShellRunner
+from cmd import Command
+from cmd.slurm import SlurmRunner
 
 class Test(unittest.TestCase):
 
@@ -37,10 +38,20 @@ class Test(unittest.TestCase):
         # Construct a test Command
         sbatch.usage = True
         print sbatch.composeCmdString()
-        sh = ShellRunner(verbose=1)
+        sh = SlurmRunner(verbose=1)
         h = sh.run(sbatch)
-        print h.stdoutstr
-        print h.stderrstr
+        self.assertTrue("Usage: sbatch" in h.stdoutstr,h.stdoutstr)
+        
+        # Do a simple echo
+        sbatch.usage = False
+        sbatch.command = "echo 'Howdy'"
+        sbatch.partition = "serial_requeue"
+        sbatch.mem = "100"
+        sbatch.time = "5"
+        sbatch.output = "howdy.out"
+        sbatch.error = "howdy.err"
+        print sbatch.composeCmdString()
+        h = sh.run(sbatch)
 
 
 if __name__ == "__main__":
