@@ -269,4 +269,5 @@ exit 2
         # Launch long running job and detach.  get stdout from stdout file.
         
         
-    
+if __name__ == "__main__":
+        unittest.main()    
