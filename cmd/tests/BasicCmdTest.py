@@ -243,8 +243,17 @@ exit 2
         cmdstring = "%s../../bin/rcx.py --rcx-jobtype=submit --rcx-stderr=stderr --rcx-stdout=stdout --rcx-runsetpath=%s --rcx-runsetname=test bash fail.sh" % (self.activatevenv, cwd)
         p  = subprocess.Popen(cmdstring,shell=True,stdout=subprocess.PIPE)
         pid = p.pid
-        time.sleep(1)
-        runsetdata = yaml.safe_load(open(os.path.join(cwd,testyamlfile),'r'))
+        count = 0
+        runsetdata = None
+        while count < 5 and runsetdata is None:            
+            time.sleep(1)
+            try:
+                runsetdata = yaml.safe_load(open(os.path.join(cwd,testyamlfile),'r'))
+            except Exception:
+                pass
+        if count == 5 and runsetdata is None:
+            raise Exception("Can't open yaml file %s" % testyamlfile)
+        
         jobid = runsetdata[0]['jobid']
         self.assertTrue(runsetdata[0]['stderrfile'] == os.path.join(cwd,'stderr'),runsetdata[0])
         self.assertTrue(runsetdata[0]['stdoutfile'] == os.path.join(cwd,'stdout'),runsetdata[0])
