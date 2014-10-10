@@ -11,14 +11,14 @@ import datetime,time
 from cmd import ShellRunner,RunLog,RunHandler,Command,DefaultFileLogger
 from cmd.slurm import SbatchCommand
 
+SLURM_NOSUBMIT_OPTIONS =  ['--usage','--help']
 class SlurmRunner(ShellRunner):
     """
     ShellRunner class that gets job ids instead of pids and uses squeue
     to determine status
     """
     def __init__(self,logger=DefaultFileLogger(),verbose=0,usevenv=False):
-        self.nosubmitoptions = ['--usage','--help']
-        super(self,ShellRunner).__init__(logger=logger,verbose=verbose,usevenv=usevenv)
+        super(self.__class__,self).__init__(logger=logger,verbose=verbose,usevenv=usevenv)
         
     def checkStatus(self,runlog=None,proc=None):
         """
