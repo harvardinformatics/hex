@@ -11,6 +11,8 @@ import tempfile
 
 from cmd import Command
 
+SBATCH_NOSUBMIT_OPTIONS =  ['usage','help']
+
 class SbatchCommand(Command):
     """
     Modifications specific to Sbatch, including script generation
@@ -23,6 +25,13 @@ class SbatchCommand(Command):
         self.scriptpath = scriptpath
         
     def composeCmdString(self):
+        # If options like --help or --usage are set, use parent for command processing
+        for option in SBATCH_NOSUBMIT_OPTIONS:
+
+            if option in self.cmdparametervalues and self.cmdparametervalues[option]:
+                return super(self.__class__,self).composeCmdString() 
+
+
         cmdstring = "#!/bin/bash\n"
         
         # Determines if the argument pattern is an optional one
@@ -55,15 +64,15 @@ class SbatchCommand(Command):
                 # Process command(s)
                 if pname == "command":
                     if isinstance(value,basestring):
-                        commands.append(value)
+                        commands.append(value + "\n")
                     else:
                         if not isinstance(value,list):
                             value = [value]
                         for command in value:
                             if isinstance(command,Command):
-                                commands.append(command.composeCmdString)
+                                commands.append(command.composeCmdString + "\n")
                             elif isinstance(command,basestring):
-                                commands.append(command)
+                                commands.append(command + "\n")
                             else:
                                 raise Exception("Why are you using %s as an sbatch command?" % command.__class__.__name__)
                     continue
@@ -112,7 +121,7 @@ class SbatchCommand(Command):
             if scriptname.startswith("/"):
                 scriptfile = open(scriptname,'w')
             else:
-                scriptname = os.path.join([self.scriptpath,scriptname])
+                scriptname = os.path.join(self.scriptpath,scriptname)
                 scriptfile = open(scriptname,'w')
         scriptfile.write(cmdstring)
         scriptfile.close()

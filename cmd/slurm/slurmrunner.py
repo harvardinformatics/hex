@@ -10,8 +10,8 @@ import subprocess,os,socket
 import datetime,time
 from cmd import ShellRunner,RunLog,RunHandler,Command,DefaultFileLogger
 from cmd.slurm import SbatchCommand
+from cmd.slurm.sbatch import SBATCH_NOSUBMIT_OPTIONS
 
-SLURM_NOSUBMIT_OPTIONS =  ['--usage','--help']
 class SlurmRunner(ShellRunner):
     """
     ShellRunner class that gets job ids instead of pids and uses squeue
@@ -29,16 +29,18 @@ class SlurmRunner(ShellRunner):
             raise Exception("Cannot checkStatus without runlog")
         
         # If it's a "help" or "usage" run, just use the parent checkStatus
-        for option in self.nosubmitoptions:
-            if option in runlog["cmdstring"]:
-                return super(self,ShellRunner).checkStatus(runlog,proc)
+        for option in SBATCH_NOSUBMIT_OPTIONS:
+            if "--%s" % option in runlog["cmdstring"]:
+                return super(self.__class__,self).checkStatus(runlog,proc)
                 
         checkcmd = "squeue -j %s --format=%%A -h" % runlog["jobid"]
         print "checkcmd %s" % checkcmd
         p = subprocess.Popen(checkcmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         (out,err) = p.communicate()
+        out = out.strip()
+        err = err.strip()
         print "squeue out %s err %s" % (out,err)
-        if out is not None:
+        if out is not None and out != "":
             # It's still running
             return None
         else:
@@ -46,8 +48,10 @@ class SlurmRunner(ShellRunner):
             sacctcmd = "sacct -j %s.batch --format=State -n" % runlog["jobid"]
             p = subprocess.Popen(sacctcmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
             (out,err) = p.communicate()
+            out = out.strip()
+            err = err.strip()
             print "sacct out is %s" % out
-            return out.strip()
+            return out
         
     def run(self,cmd,runhandler=None,runsetname=None,stdoutfile=None,stderrfile=None,logger=None):
         """
@@ -76,9 +80,9 @@ class SlurmRunner(ShellRunner):
         Method that actually executes the Command(s).
         """
         # For options like "help" and "usage", the parent method should be called.
-        for option in self.nosubmitoptions:
-            if option in cmd:
-                return super(self,ShellRunner).execute(cmd,runsetname,stdoutfile=stdoutfile,stderrfile=stderrfile,logger=logger)
+        for option in SBATCH_NOSUBMIT_OPTIONS:
+            if "--%s" % option in cmd:
+                return super(self.__class__,self).execute(cmd,runsetname,stdoutfile=stdoutfile,stderrfile=stderrfile,logger=logger)
                 
         if logger is None:
             logger = self.logger
@@ -92,6 +96,7 @@ class SlurmRunner(ShellRunner):
         pid = os.fork()
         if pid == 0:
             proc = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            print "Launched %s" % cmd
             (out,err) = proc.communicate()
             if err:
                 raise Exception("sbatch submission failed %s" % err)

@@ -160,7 +160,7 @@ class RunHandler(object):
         self.status = ''
              
     def setCmd(self,cmd,runner=ShellRunner(),stdoutfile=None,stderrfile=None):
-
+        self.cmds = []
         self.cmds.append((cmd,runner,stdoutfile,stderrfile))
      
     def run(self,cmd,addrcx=True,runner=ShellRunner(),stdoutfile=None,stderrfile=None):
@@ -232,6 +232,8 @@ class RunHandler(object):
             if delay[1] < 20:
                 delay[0],delay[1] = delay[1], delay[0] + delay[1]
             result = self.checkStatus()
+            if result is not None:
+                print "check status result is %s" % result
         
         return result           
          
