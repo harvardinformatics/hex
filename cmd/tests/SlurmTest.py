@@ -50,8 +50,10 @@ class Test(unittest.TestCase):
         sbatch.time = "5"
         sbatch.output = "howdy.out"
         sbatch.error = "howdy.err"
-        print sbatch.composeCmdString()
+        sbatch.scriptname = "howdy.sbatch"
+        print "Composed string is %s " % sbatch.composeCmdString()
         h = sh.run(sbatch)
+        self.assertTrue("Howdy" in h.stdoutstr,"Out %s, Err %s" % (h.stdoutstr,h.stderrstr))
 
 
 if __name__ == "__main__":
