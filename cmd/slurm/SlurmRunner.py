@@ -21,17 +21,20 @@ class SlurmRunner(ShellRunner):
         Checks the status of processes using squeue.
         Runlog must have a job id in it 
         """
-        checkcmd = "squeue -j %d --format='\%A' -h" % runlog['jobid']
-        p = subprocess.call(checkcmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        checkcmd = "squeue -j %s --format=%%A -h" % runlog['jobid']
+        print "checkcmd %s" % checkcmd
+        p = subprocess.Popen(checkcmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         (out,err) = p.communicate()
+        print "squeue out %s err %s" % (out,err)
         if out is not None:
             # It's still running
             return None
         else:
             # Get the result from sacct
-            sacctcmd = "sacct -j %d.batch --format=State -n" % runlog['jobid']
-            p = subprocess.call(sacctcmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            sacctcmd = "sacct -j %s.batch --format=State -n" % runlog['jobid']
+            p = subprocess.Popen(sacctcmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
             (out,err) = p.communicate()
+            print "sacct out is %s" % out
             return out.strip()
         
     def run(self,cmd,runhandler=None,runsetname=None,stdoutfile=None,stderrfile=None,logger=None):
@@ -75,6 +78,7 @@ class SlurmRunner(ShellRunner):
             (out,err) = proc.communicate()
             if err:
                 raise Exception("sbatch submission failed %s" % err)
+            print "Out %s, Err %s" % (out,err)
             jobid = out.split()[-1]
             starttime = datetime.datetime.now()
             runset = []

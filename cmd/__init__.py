@@ -462,7 +462,10 @@ class Command(object):
     
     def __getattr__(self,name):
         if "parameterdefs" in self.__dict__ and name in self.parameterdefs:
-            return self.cmdparametervalues[name]
+            if name in self.cmdparametervalues:
+                return self.cmdparametervalues[name]
+            else:
+                return None
         else:
             return self.__dict__[name]
     
