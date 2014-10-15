@@ -15,7 +15,11 @@ class Test(unittest.TestCase):
 
 
     def setUp(self):
-        pass
+        for f in ["howdy.err","howdy.out","howdy.sbatch"]:
+            try:
+                os.remove(f)
+            except Exception:
+                pass
 
 
     def tearDown(self):
@@ -54,6 +58,8 @@ class Test(unittest.TestCase):
         print "Composed string is %s " % sbatch.composeCmdString()
         h = sh.run(sbatch)
         self.assertTrue("Howdy" in h.stdoutstr)
+        self.assertTrue(h.stderrstr == "")
+        self.assertTrue(h.exitstatus == "COMPLETED")
 
 
 if __name__ == "__main__":

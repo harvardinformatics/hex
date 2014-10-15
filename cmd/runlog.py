@@ -97,6 +97,8 @@ class FileLogger(object):
         runsetfilename += ".yaml"
         with open(runsetfilename,'w') as runsetfile:
             yaml.dump(data,runsetfile,width=1000)
+            runsetfile.flush()
+            os.fsync(runsetfile)
             
         return runsetfilename
             

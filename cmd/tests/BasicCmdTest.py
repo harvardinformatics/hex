@@ -258,7 +258,7 @@ exit 2
         self.assertTrue(runsetdata[0]['stderrfile'] == os.path.join(cwd,'stderr'),runsetdata[0])
         self.assertTrue(runsetdata[0]['stdoutfile'] == os.path.join(cwd,'stdout'),runsetdata[0])
         self.assertTrue(runsetdata[0]['cmdstring'] == 'bash fail.sh',runsetdata[0])
-        self.assertTrue(runsetdata[0]['runner'] == 'cmd.ShellRunner',runsetdata[0])
+        self.assertTrue(runsetdata[0]['runner'] == 'shellrunner.ShellRunner',runsetdata[0])
 
         stdout = open("./stdout","r")
         lines = []

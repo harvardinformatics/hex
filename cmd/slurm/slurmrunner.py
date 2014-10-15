@@ -19,6 +19,30 @@ class SlurmRunner(ShellRunner):
     """
     def __init__(self,logger=DefaultFileLogger(),verbose=0,usevenv=False):
         super(self.__class__,self).__init__(logger=logger,verbose=verbose,usevenv=usevenv)
+
+    def getSlurmStatus(self,jobid):
+        checkcmd = "squeue -j %s --format=%%T -h" % jobid
+        if self.verbose > 1: 
+            print "checkcmd %s" % checkcmd
+        p = subprocess.Popen(checkcmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        (out,err) = p.communicate()
+        out = out.strip()
+        err = err.strip()
+        if self.verbose > 1:
+            print "squeue out %s err %s" % (out,err)
+        if out is not None and out != "":
+            # It's still running
+            return out
+        else:
+            # Get the result from sacct
+            sacctcmd = "sacct -j %s.batch --format=State -n" % jobid
+            p = subprocess.Popen(sacctcmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            (out,err) = p.communicate()
+            out = out.strip()
+            err = err.strip()
+            if self.verbose > 1:
+                print "sacct out is %s" % out
+            return out
         
     def checkStatus(self,runlog=None,proc=None):
         """
@@ -32,26 +56,13 @@ class SlurmRunner(ShellRunner):
         for option in SBATCH_NOSUBMIT_OPTIONS:
             if "--%s" % option in runlog["cmdstring"]:
                 return super(self.__class__,self).checkStatus(runlog,proc)
-                
-        checkcmd = "squeue -j %s --format=%%A -h" % runlog["jobid"]
-        print "checkcmd %s" % checkcmd
-        p = subprocess.Popen(checkcmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-        (out,err) = p.communicate()
-        out = out.strip()
-        err = err.strip()
-        print "squeue out %s err %s" % (out,err)
-        if out is not None and out != "":
-            # It's still running
-            return None
+       
+        result = self.getSlurmStatus(runlog["jobid"]) 
+        if result in ["CANCELLED","COMPLETED","FAILED","TIMEOUT","NODE_FAIL","SPECIAL_EXIT"]:
+            return result
         else:
-            # Get the result from sacct
-            sacctcmd = "sacct -j %s.batch --format=State -n" % runlog["jobid"]
-            p = subprocess.Popen(sacctcmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-            (out,err) = p.communicate()
-            out = out.strip()
-            err = err.strip()
-            print "sacct out is %s" % out
-            return out
+            return None
+                 
         
     def run(self,cmd,runhandler=None,runsetname=None,stdoutfile=None,stderrfile=None,logger=None):
         """

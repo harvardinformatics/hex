@@ -248,7 +248,7 @@ class RunHandler(object):
         if exitstatus is None:
             exitstatus = "unknown"
         runlog["exitstatus"] = exitstatus
-        self.logger.saveRunSet(runlog,runsetname)
+        self.logger.saveRunSet([runlog],runsetname)
         
     
     def wait(self):
@@ -263,8 +263,6 @@ class RunHandler(object):
             if delay[1] < 20:
                 delay[0],delay[1] = delay[1], delay[0] + delay[1]
             result = self.checkStatus()
-            if result is not None:
-                print "check status result is %s" % result
         
         return result           
          
@@ -303,18 +301,15 @@ class RunHandler(object):
         return ''.join(stderr.readlines())
     
     
-    def getExitCode(self):
+    def getExitStatus(self):
         """
-        Get the exit code.  This only works if you're using Runners in the current
-        process since it requires the subprocess.popen result.  
+        Get the exitstatus value from the runlog.  This will call wait() until the process is finished.
         
         If you're connecting to a previously run process, this will return None.
         """
-        if not self.proc:
-            return None
-        else:           
-            return self.wait()
-                
+        self.wait()
+        runlog = self.getRunSet()[0]
+        return runlog["exitstatus"] 
     
     def __getattr__(self,attr):
         """
@@ -325,9 +320,7 @@ class RunHandler(object):
              
         # If it's one of the usual suspects, then get the RunSet and return the 
         # value for the "default" Run (ie the first one)
-        if attr in ['jobid','starttime','stderr','stderrstr','stdout','stdoutstr','exitcode']:
-            if attr == 'exitcode':
-                return self.getExitCode()
+        if attr in ['jobid','starttime','stderr','stderrstr','stdout','stdoutstr','exitstatus']:
 
             # Most of these won't work without a runset name
             if not hasattr(self,'runsetname'):
@@ -335,6 +328,7 @@ class RunHandler(object):
                             
             if attr in ['jobid','starttime']:
                 runset = self.getRunSet()
+                print runset[0]
                 return runset[0][attr]
             
             if attr == 'stdout':
@@ -346,6 +340,8 @@ class RunHandler(object):
                 return self.getStdOutString()
             if attr == 'stderrstr':
                 return self.getStdErrString()
+            if attr == 'exitstatus':
+                return self.getExitStatus()
             
                  
         return self.__dict__[attr]
