@@ -69,7 +69,7 @@ class ShellRunner(object):
             else:
                 return returnval
             
-     
+        
      
     def run(self,cmd,runhandler=None,runsetname=None,stdoutfile=None,stderrfile=None,logger=None):
         """
@@ -209,16 +209,47 @@ class RunHandler(object):
      
       
     def checkStatus(self,runlog=None):
+        """
+        Use runner to check the status for the given runlog.  Like with the 
+        runner.checkStatus method, a return value of None means it is still 
+        running and anything else is the "exit status"
+        
+        Calls setDone if the result is not None
+        """
         if runlog is None:
             if self.proc and self.runner:
                 return self.runner.checkStatus(proc=self.proc)
             else:
                 runlog = self.getRunSet()[0]
+                
+        # If it has finished, return the exitstatus
+        if "endtime" in runlog:
+            return runlog["exitstatus"]              
+            
         runner = self.runner
         if not runner:
             cls = getClassFromName(runlog['runner'])
             runner = cls()
-        return runner.checkStatus(runlog=runlog)
+        result = runner.checkStatus(runlog=runlog)
+        if result is not None:
+            self.setDone(runlog, self.runsetname, exitstatus=result)
+        return result
+    
+    
+    def setDone(self,runlog,runsetname,exitstatus=None,endtime=None):
+        """
+        Sets the exitstatus and endtime in the runlog
+        """
+        if runlog is None:
+            raise Exception("Need a runlog to setDone")
+        if endtime is None:
+            endtime = datetime.datetime.now()
+        runlog['endtime'] = endtime
+        if exitstatus is None:
+            exitstatus = "unknown"
+        runlog["exitstatus"] = exitstatus
+        self.logger.saveRunSet(runlog,runsetname)
+        
     
     def wait(self):
         """
@@ -236,6 +267,7 @@ class RunHandler(object):
                 print "check status result is %s" % result
         
         return result           
+         
          
     def getStdOut(self):
         """
