@@ -8,8 +8,8 @@ All rights reserved.
 """
 import sys,os
 import unittest
-from cmd import Command
-from cmd.slurm import SlurmRunner
+from command import Command
+from command.slurm import SlurmRunner
 
 class Test(unittest.TestCase):
 

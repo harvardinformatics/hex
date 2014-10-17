@@ -9,7 +9,7 @@ All rights reserved.
 
 import unittest
 import os, sys, time
-from cmd import Command,ShellRunner
+from command import Command,ShellRunner
 
 
 class Test(unittest.TestCase):

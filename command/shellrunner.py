@@ -8,7 +8,7 @@ All rights reserved.
 """
 import os,subprocess,socket,time
 import datetime
-from cmd import DefaultFileLogger, Command, RunLog, getClassFromName
+from command import DefaultFileLogger, Command, RunLog, getClassFromName
 
 class Env(dict):
     """
@@ -132,7 +132,6 @@ class ShellRunner(object):
             runset.append(runlog)
             if self.verbose > 0:
                 print runlog
-        #print "Path is %s Runset name is %s" % (logger.pathname, runsetname)
             logger.saveRunSet(runset, runsetname)
             os._exit(0)
         else:
@@ -328,7 +327,6 @@ class RunHandler(object):
                             
             if attr in ['jobid','starttime']:
                 runset = self.getRunSet()
-                print runset[0]
                 return runset[0][attr]
             
             if attr == 'stdout':

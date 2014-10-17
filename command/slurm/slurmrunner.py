@@ -8,9 +8,9 @@ All rights reserved.
 """
 import subprocess,os,socket
 import datetime,time
-from cmd import ShellRunner,RunLog,RunHandler,Command,DefaultFileLogger
-from cmd.slurm import SbatchCommand
-from cmd.slurm.sbatch import SBATCH_NOSUBMIT_OPTIONS
+from command import ShellRunner,RunLog,RunHandler,Command,DefaultFileLogger
+from command.slurm import SbatchCommand
+from command.slurm.sbatch import SBATCH_NOSUBMIT_OPTIONS
 
 class SlurmRunner(ShellRunner):
     """

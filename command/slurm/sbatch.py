@@ -9,7 +9,7 @@ All rights reserved.
 import re, os
 import tempfile
 
-from cmd import Command
+from command import Command
 
 SBATCH_NOSUBMIT_OPTIONS =  ['usage','help']
 

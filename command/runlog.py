@@ -27,7 +27,7 @@ class RunLog(dict):
             self[k] = v
             
         if 'runner' not in kwargs:
-            self['runner'] = "cmd.ShellRunner"
+            self['runner'] = "command.ShellRunner"
                 
     def getStdOut(self):
         """

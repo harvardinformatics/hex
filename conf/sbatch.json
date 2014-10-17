@@ -3,7 +3,7 @@
         "version" : "14.03.8",
         "bin" : "sbatch",
         "description" : "sbatch  submits  a  batch script to SLURM.",
-        "cmdclass" : "cmd.slurm.SbatchCommand",
+        "cmdclass" : "command.slurm.SbatchCommand",
         "parameterdefs" : [
             {
                 "name" : "array",
@@ -22,7 +22,7 @@
             {
                 "name" : "begin",
                 "description" : "Submit  the  batch  script  to  the SLURM controller immediately, like normal, but tell the controller to defer the allocation of the job until the specified time.",
-                "validator" : "cmd.slurm.validators.BeginTimeValidator",
+                "validator" : "command.slurm.validators.BeginTimeValidator",
                 "switches" : ["--begin <VALUE>"],
                 "pattern" : "--begin=<VALUE>",
                 "required" : "no"
@@ -75,7 +75,7 @@
                 "switches" : ["--workdir","-D"],
                 "pattern" : "--workdir=\"<VALUE>\"",
                 "required" : "no",
-                "validator" : "cmd.validators.PathValidator"
+                "validator" : "command.validators.PathValidator"
             },
             {
                 "name" : "error",
@@ -83,7 +83,7 @@
                 "switches" : ["--error","-e"],
                 "pattern" : "--error=\"<VALUE>\"",
                 "required" : "no",
-                "validator" : "cmd.validators.PathValidator"
+                "validator" : "command.validators.PathValidator"
             },
             {
                 "name" : "exclusive",
@@ -112,7 +112,7 @@
                 "switches" : ["--nodefile","-F"],
                 "pattern" : "--nodefile=\"<VALUE>\"",
                 "required" : "no",
-                "validator" : "cmd.validators.PathValidator"
+                "validator" : "command.validators.PathValidator"
             },
             {
                 "name" : "get_user_env",

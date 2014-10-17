@@ -12,7 +12,7 @@ import re
 
 import json
 
-from cmd import DEFAULT_PDEF_PATH, getClassFromName
+from command import DEFAULT_PDEF_PATH, getClassFromName
 
 
 class ParameterDef(object):

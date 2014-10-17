@@ -23,7 +23,7 @@ For the process, the following values are logged:
 """
 
 import sys, os
-from cmd import Command,getClassFromName
+from command import Command,getClassFromName
 
 from argparse import ArgumentParser, RawDescriptionHelpFormatter, REMAINDER
 
