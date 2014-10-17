@@ -84,6 +84,7 @@ class SlurmRunner(ShellRunner):
             if cmd.error:
                 stderrfile = cmd.error
         runhandler.setCmd(cmd,runner=self,stdoutfile=stdoutfile,stderrfile=stderrfile)
+        runhandler.doRun()
         return runhandler
              
     def execute(self,cmd,runsetname,stdoutfile=None,stderrfile=None,logger=None):

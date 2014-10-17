@@ -84,6 +84,7 @@ class ShellRunner(object):
         if isinstance(cmd,basestring):
             cmd = Command(cmd)
         runhandler.setCmd(cmd,runner=self,stdoutfile=stdoutfile,stderrfile=stderrfile)
+        runhandler.doRun()
         return runhandler
       
       
@@ -119,7 +120,6 @@ class ShellRunner(object):
         pid = os.fork()
         if pid == 0:
             proc = subprocess.Popen(cmd,shell=True,stdout=stdout,stderr=stderr)
-            print "Proc started"
             starttime = datetime.datetime.now()
             runset = []
             runlog = RunLog( jobid=proc.pid,
@@ -133,9 +133,7 @@ class ShellRunner(object):
             runset.append(runlog)
             if self.verbose > 0:
                 print runlog
-            print "Starting runset"
             logger.saveRunSet(runset, runsetname)
-            print "Done with runset"
             os._exit(0)
         else:
             time.sleep(1)
@@ -171,6 +169,7 @@ class RunHandler(object):
         so that it will be called when the application is run.
         """
         self.cmds.append((cmd,runner,stdoutfile,stderrfile))
+        self.doRun()
         return self
          
     def doRun(self):
@@ -218,9 +217,6 @@ class RunHandler(object):
         
         Calls setDone if the result is not None
         """
-        if self.status not in ['Running','Completed']:
-            self.doRun()
-
         if runlog is None:
             if self.proc and self.runner:
                 return self.runner.checkStatus(proc=self.proc)
