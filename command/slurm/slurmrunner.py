@@ -107,7 +107,6 @@ class SlurmRunner(ShellRunner):
         pid = os.fork()
         if pid == 0:
             proc = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-            print "Launched %s" % cmd
             (out,err) = proc.communicate()
             if err:
                 raise Exception("sbatch submission failed %s" % err)
@@ -130,7 +129,15 @@ class SlurmRunner(ShellRunner):
             logger.saveRunSet(runset, runsetname)
             os._exit(0)
         else:
-            time.sleep(1)
+            # Wait until the runset file has been written
+            ready = False
+            while not ready:
+                time.sleep(2)
+                try:
+                    logger.getRunSet(runsetname)
+                    ready = True
+                except Exception:
+                    pass
         return None
     
 

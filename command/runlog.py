@@ -69,9 +69,10 @@ class FileLogger(object):
         runsetfilename += ".yaml"
         
         result = []
-        
         with open(runsetfilename,'r') as runsetfile:
             runset = yaml.safe_load(runsetfile)
+            if runset is None:
+                raise Exception("Unable to load runset from %s" % runsetfilename)
             for runlog in runset:
                 for key in ['starttime','endtime']:
                     if key in runlog:
@@ -96,9 +97,10 @@ class FileLogger(object):
         runsetfilename = os.path.join(self.pathname,runsetname)
         runsetfilename += ".yaml"
         with open(runsetfilename,'w') as runsetfile:
-            yaml.dump(data,runsetfile,width=1000)
+            str = yaml.dump(data,width=1000)
+            runsetfile.write(str)
             runsetfile.flush()
-            os.fsync(runsetfile)
+            os.fsync(runsetfile.fileno())
             
         return runsetfilename
             
@@ -133,9 +135,9 @@ class DefaultFileLogger(FileLogger):
         """
         Returns a temp file name for a runset file
         """
-        f = tempfile.NamedTemporaryFile(mode='w',dir=self.pathname,delete=False)
+        f = tempfile.NamedTemporaryFile(mode='w',suffix='.yaml',dir=self.pathname,delete=False,bufsize=0)
         f.close()
-        return os.path.basename(f.name)
+        return os.path.basename(f.name[:-5])
         
                
                

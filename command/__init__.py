@@ -38,12 +38,15 @@ def getClassFromName(classname):
     Utility that will return the class object for a full qualified 
     classname
     """
-    parts = classname.split('.')
-    module = ".".join(parts[:-1])
-    m = __import__( module )
-    for comp in parts[1:]:
-        m = getattr(m, comp)            
-    return m
+    try:
+        parts = classname.split('.')
+        module = ".".join(parts[:-1])
+        m = __import__( module )
+        for comp in parts[1:]:
+            m = getattr(m, comp)            
+        return m
+    except ImportError:
+        print "Unable to import %s" % classname 
 
 
 __all__ = []

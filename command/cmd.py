@@ -19,7 +19,7 @@ class ParameterDef(object):
     """
     Command parameter definition
     """
-    def __init__(self,name=None,required='no',switches=[],pattern=None,description="",validator='cmd.validators.StringValidator',order=0):
+    def __init__(self,name=None,required='no',switches=[],pattern=None,description="",validator='command.StringValidator',order=0):
         if name is None:
             raise Exception("ParameterDef must have a name")
         if pattern is None:
@@ -141,6 +141,7 @@ class Command(object):
         has arguments they are concatenated first, then key-value pairs are added
         """
         if hasattr(self,"cmdstring"):
+            print "cmdstring is %s" % self.cmdstring
             return self.cmdstring
         cmdstring = ""
         if hasattr(self,"cmdarray") and len(self.cmdarray)  > 0:

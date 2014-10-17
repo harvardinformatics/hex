@@ -119,6 +119,7 @@ class ShellRunner(object):
         pid = os.fork()
         if pid == 0:
             proc = subprocess.Popen(cmd,shell=True,stdout=stdout,stderr=stderr)
+            print "Proc started"
             starttime = datetime.datetime.now()
             runset = []
             runlog = RunLog( jobid=proc.pid,
@@ -132,7 +133,9 @@ class ShellRunner(object):
             runset.append(runlog)
             if self.verbose > 0:
                 print runlog
+            print "Starting runset"
             logger.saveRunSet(runset, runsetname)
+            print "Done with runset"
             os._exit(0)
         else:
             time.sleep(1)
@@ -215,6 +218,9 @@ class RunHandler(object):
         
         Calls setDone if the result is not None
         """
+        if self.status not in ['Running','Completed']:
+            self.doRun()
+
         if runlog is None:
             if self.proc and self.runner:
                 return self.runner.checkStatus(proc=self.proc)
@@ -248,6 +254,7 @@ class RunHandler(object):
             exitstatus = "unknown"
         runlog["exitstatus"] = exitstatus
         self.logger.saveRunSet([runlog],runsetname)
+        self.status = "Completed"
         
     
     def wait(self):

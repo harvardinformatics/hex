@@ -75,7 +75,7 @@
                 "switches" : ["--workdir","-D"],
                 "pattern" : "--workdir=\"<VALUE>\"",
                 "required" : "no",
-                "validator" : "command.validators.PathValidator"
+                "validator" : "command.PathValidator"
             },
             {
                 "name" : "error",
@@ -83,7 +83,7 @@
                 "switches" : ["--error","-e"],
                 "pattern" : "--error=\"<VALUE>\"",
                 "required" : "no",
-                "validator" : "command.validators.PathValidator"
+                "validator" : "command.PathValidator"
             },
             {
                 "name" : "exclusive",
@@ -112,7 +112,7 @@
                 "switches" : ["--nodefile","-F"],
                 "pattern" : "--nodefile=\"<VALUE>\"",
                 "required" : "no",
-                "validator" : "command.validators.PathValidator"
+                "validator" : "command.PathValidator"
             },
             {
                 "name" : "get_user_env",

@@ -70,7 +70,7 @@ class SbatchCommand(Command):
                             value = [value]
                         for command in value:
                             if isinstance(command,Command):
-                                commands.append(command.composeCmdString + "\n")
+                                commands.append("%s\n" % command.composeCmdString())
                             elif isinstance(command,basestring):
                                 commands.append(command + "\n")
                             else:
