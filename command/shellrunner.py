@@ -218,7 +218,7 @@ class RunHandler(object):
         Calls setDone if the result is not None
         """
         if runlog is None:
-            if self.proc and self.runner:
+            if hasattr(self,"proc") and hasattr(self,"runner") and self.proc and self.runner:
                 return self.runner.checkStatus(proc=self.proc)
             else:
                 runlog = self.getRunSet()[0]
@@ -227,7 +227,9 @@ class RunHandler(object):
         if "endtime" in runlog:
             return runlog["exitstatus"]              
             
-        runner = self.runner
+        runner = None
+        if hasattr(self,"runner"):
+            runner = self.runner
         if not runner:
             cls = getClassFromName(runlog['runner'])
             runner = cls()
@@ -317,12 +319,12 @@ class RunHandler(object):
         """
         Do the actual execution if something is requested (and execution is pending)
         """
-        if self.status not in ['Running','Completed']:
-            self.doRun()
              
         # If it's one of the usual suspects, then get the RunSet and return the 
         # value for the "default" Run (ie the first one)
         if attr in ['jobid','starttime','stderr','stderrstr','stdout','stdoutstr','exitstatus']:
+            if self.status not in ['Running','Completed']:
+                self.doRun()
 
             # Most of these won't work without a runset name
             if not hasattr(self,'runsetname'):
