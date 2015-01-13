@@ -7,7 +7,7 @@ All rights reserved.
 @author: Aaron Kitzmiller
 """
 
-import os
+import os, subprocess
 import re
 
 import json
@@ -133,6 +133,13 @@ class Command(object):
             for k,v in kwargs.iteritems():
                 self.setArgValue(k,v)
              
+    def reset(self):
+        """
+        Resets parameter defs to their defaults.
+        """
+        for key,pdef in self.parameterdefs:
+            self.cmdparametervalues[key] = pdef.default
+
                  
      
     def composeCmdString(self):
@@ -280,6 +287,20 @@ class Command(object):
                 return True
         else:
             return True
+        
+    def run(self):
+        """
+        Run this command using the command string and Popen.  
+        A tuple of return code, stdout, and stderr is returned.
+        """       
+        p = subprocess.Popen(
+            self.composeCmdString(),
+            shell=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+        stdout, stderr = p.communicate()
+        return (p.returncode,stdout.strip(),stderr.strip())
         
         
     def __dir__(self):

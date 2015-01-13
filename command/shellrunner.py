@@ -81,33 +81,7 @@ class ShellRunner(object):
             runsetname = logger.getRunsetName()
         if runhandler is None:
             runhandler = RunHandler(logger,runsetname)
-        if isinstance(cmd,basestring):
-            cmd = Command(cmd)
-        runhandler.setCmd(cmd,runner=self,stdoutfile=stdoutfile,stderrfile=stderrfile)
-        runhandler.doRun()
-        return runhandler
-      
-      
-    def getCmdString(self,cmd):
-        """
-        Returns the command string, using the Command.composeCmdString()
-        """
-        cmdstring = cmd.composeCmdString()
-        if self.usevenv:
-            if "VIRTUAL_ENV" in os.environ:
-                cmdstring += "source %s/bin/activate && " % os.environ["VIRTUAL_ENV"]
-            elif "CONDA_DEFAULT_ENV" in os.environ:
-                cmdstring += "source activate %s &&" % os.environ["CONDA_DEFAULT_ENV"]
-        return cmd.composeCmdString()
-    
-
-     
-    def execute(self,cmd,runsetname,stdoutfile=None,stderrfile=None,logger=None):
-        """
-        Method that actually executes the Command(s).
-        """
-        if logger is None:
-            logger = self.logger
+            
         if stdoutfile is None:
             stdoutfile = logger.getStdOutFileName()
         if stderrfile is None:
@@ -137,18 +111,29 @@ class ShellRunner(object):
             os._exit(0)
         else:
             time.sleep(1)
-        return None
+                      
+        return runhandler
+      
+      
+    def getCmdString(self,cmd):
+        """
+        Returns the command string, using the Command.composeCmdString()
+        """
+        cmdstring = cmd.composeCmdString()
+        if self.usevenv:
+            if "VIRTUAL_ENV" in os.environ:
+                cmdstring += "source %s/bin/activate && " % os.environ["VIRTUAL_ENV"]
+            elif "CONDA_DEFAULT_ENV" in os.environ:
+                cmdstring += "source activate %s &&" % os.environ["CONDA_DEFAULT_ENV"]
+        return cmd.composeCmdString()
+    
      
      
 class RunHandler(object):
     """
     Result of a Runner.submit() or Runner.run().  Can be used to access
     the state and result of a running job via the RunSet
-     
-    Actual execution is deferred until this object is created and some
-    thing is asked for.  This allows run() and submit() to be chained into
-    a series of commands.
-     
+          
     If the RunSet only has a single Run record, then things like 
     RunHandler.stderr will return the standard error stream.
      
@@ -159,46 +144,6 @@ class RunHandler(object):
         self.runsetname = runsetname
         self.status = ''
              
-    def setCmd(self,cmd,runner=ShellRunner(),stdoutfile=None,stderrfile=None):
-        self.cmds = []
-        self.cmds.append((cmd,runner,stdoutfile,stderrfile))
-     
-    def run(self,cmd,addrcx=True,runner=ShellRunner(),stdoutfile=None,stderrfile=None):
-        """
-        This gets called when you chain stuff together.  The runner gets rcx.py set
-        so that it will be called when the application is run.
-        """
-        self.cmds.append((cmd,runner,stdoutfile,stderrfile))
-        self.doRun()
-        return self
-         
-    def doRun(self):
-        """
-        This actually executes the code using the first runner in the list.  If there is 
-        an array of command / runner /stdoutfile / stderrfile tuples, the command strings are chained together.
-        """
-        if len(self.cmds) == 0:
-            raise Exception("Nothing to run")
-        
-        (command,runner,stdoutfile,stderrfile) = self.cmds.pop(0)
-        self.runner = runner
-        cmdstring = runner.getCmdString(command)
-        
-        for record in self.cmds:
-            """
-            Combine the runner / cmd combos into a single command string
-            """
-            cmdstring += "rcx.py --rcx-runner=%s --rcx-runsetname=%s --rcx-runsetpath=%s " % \
-                         ( record[1].__class__.__name__, self.runsetname, self.logger.pathname)
-            if record[2] is not None and record[2] != "":
-                cmdstring += "--rcx-stdoutfile='%s' " % record[2]
-            if record[3] is not None and record[3] != "":
-                cmdstring += "--rcx-stderrfile='%s' " % record[3]
-            cmdstring += record[1].getCmdString(record[0])
-            
-        self.status = 'Running'
-        self.proc = runner.execute(cmdstring,runsetname=self.runsetname,stdoutfile=stdoutfile,stderrfile=stderrfile)
-        self.status = 'Completed'
              
          
     def getRunSet(self):
@@ -323,8 +268,6 @@ class RunHandler(object):
         # If it's one of the usual suspects, then get the RunSet and return the 
         # value for the "default" Run (ie the first one)
         if attr in ['jobid','starttime','stderr','stderrstr','stdout','stdoutstr','exitstatus']:
-            if self.status not in ['Running','Completed']:
-                self.doRun()
 
             # Most of these won't work without a runset name
             if not hasattr(self,'runsetname'):

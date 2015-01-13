@@ -1,6 +1,7 @@
 *.pyc
 *.project
 *.pydevproject
+.spyderproject
 fail.sh
 long.sh
 *.sbatch
