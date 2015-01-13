@@ -28,7 +28,7 @@ class Test(unittest.TestCase):
 
     def testSlurm(self):
         # Fetch command via parameter defs
-        confpath = os.path.join('../../','conf')
+        confpath = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),'conf')
         sbatch = Command.fetch('sbatch',path=confpath)
         self.assertTrue(sbatch.__class__.__name__ == "SbatchCommand")
         self.assertTrue(sbatch.bin == 'sbatch')
@@ -44,7 +44,7 @@ class Test(unittest.TestCase):
         print sbatch.composeCmdString()
         sh = SlurmRunner(verbose=1)
         h = sh.run(sbatch)
-        self.assertTrue("Usage: sbatch" in h.stdoutstr,h.stdoutstr)
+        self.assertTrue("Usage: sbatch" in h.stdoutstr,h.stderrstr)
         
         # Do a simple echo
         sbatch.usage = False

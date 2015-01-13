@@ -140,12 +140,12 @@ exit 2
           
         ## Direct string execution, stdout string
         r = ShellRunner()
-        h = r.run("echo 'Hello'")
+        h = r.run(Command("echo 'Hello'"))
         self.assertEqual(h.stdoutstr, "Hello\n")
         self.assertEqual(h.stderrstr,"")
           
         ## Direct string execution, stderr string
-        h = r.run("cat nosuchfile")
+        h = r.run(Command("cat nosuchfile"))
         self.assertEqual(h.stdoutstr,"")
         self.assertEqual(h.stderrstr,"cat: nosuchfile: No such file or directory\n")
          
@@ -153,7 +153,7 @@ exit 2
              
         os.chmod("long.sh", S_IXUSR | S_IRUSR | S_IWUSR)
         print "Running long.sh..."
-        h = r.run("bash long.sh")
+        h = r.run(Command("bash long.sh"))
         stdoutstr = h.stdoutstr
         stderrstr = h.stderrstr
         print "Done."
@@ -163,7 +163,7 @@ exit 2
            
         ## Direct string execution, stdout iterator
         print "Starting long.sh..."
-        h = r.run("bash long.sh")
+        h = r.run(Command("bash long.sh"))
         stdout = h.stdout
         lines = []
         while h.checkStatus() is None:
@@ -180,7 +180,7 @@ exit 2
                    
         ## Direct string execution, stderr iterator
         print "Starting long.sh..."
-        h = r.run("bash long.sh")
+        h = r.run(Command("bash long.sh"))
         stderr = h.stderr
         lines = []
         while h.checkStatus() is None:
@@ -198,7 +198,7 @@ exit 2
              
         os.chmod("fail.sh", S_IXUSR | S_IRUSR | S_IWUSR)
         print "Running fail.sh..."
-        h = r.run("bash fail.sh")
+        h = r.run(Command("bash fail.sh"))
         stdoutstr = h.stdoutstr
         stderrstr = h.stderrstr
         self.assertTrue(len(stdoutstr.split("\n")) == 11,len(stdoutstr.split("\n")))

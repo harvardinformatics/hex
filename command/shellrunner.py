@@ -71,7 +71,7 @@ class ShellRunner(object):
             
         
      
-    def run(self,cmd,runhandler=None,runsetname=None,stdoutfile=None,stderrfile=None,logger=None):
+    def run(self,cmds,runhandler=None,runsetname=None,stdoutfile=None,stderrfile=None,logger=None):
         """
         Runs a Command and returns a RunHandler
         """
@@ -82,28 +82,38 @@ class ShellRunner(object):
         if runhandler is None:
             runhandler = RunHandler(logger,runsetname)
             
-        if stdoutfile is None:
-            stdoutfile = logger.getStdOutFileName()
-        if stderrfile is None:
-            stderrfile = logger.getStdErrFileName()
-             
-        stdout = open(stdoutfile,'w')
-        stderr = open(stderrfile,'w')
+        # cmds should be an array
+        if not isinstance(cmds,list):
+            cmds = [cmds]
          
         hostname = socket.gethostname().split('.',1)[0]
         pid = os.fork()
         if pid == 0:
-            proc = subprocess.Popen(cmd,shell=True,stdout=stdout,stderr=stderr)
-            starttime = datetime.datetime.now()
             runset = []
-            runlog = RunLog( jobid=proc.pid,
-                             cmdstring=cmd,
-                             starttime=starttime,
-                             hostname=hostname,
-                             stdoutfile=stdoutfile,
-                             stderrfile=stderrfile,
-                             runner="%s.%s" % (self.__module__, self.__class__.__name__)
-            )
+            for cmd in cmds:
+                
+                # Prepare the command string using the Runner method
+                cmdstring = self.getCmdString(cmd)
+                
+                # Get a tempfile stdout and stderr if they aren't specified
+                if stdoutfile is None:
+                    stdoutfile = logger.getStdOutFileName()
+                if stderrfile is None:
+                    stderrfile = logger.getStdErrFileName()                    
+                stdout = open(stdoutfile,'w')
+                stderr = open(stderrfile,'w')
+        
+                # Launch the process
+                proc = subprocess.Popen(cmdstring,shell=True,stdout=stdout,stderr=stderr)
+                starttime = datetime.datetime.now()
+                runlog = RunLog( jobid=proc.pid,
+                                 cmdstring=cmdstring,
+                                 starttime=starttime,
+                                 hostname=hostname,
+                                 stdoutfile=stdoutfile,
+                                 stderrfile=stderrfile,
+                                 runner="%s.%s" % (self.__module__, self.__class__.__name__)
+                )
             runset.append(runlog)
             if self.verbose > 0:
                 print runlog
@@ -111,7 +121,7 @@ class ShellRunner(object):
             os._exit(0)
         else:
             time.sleep(1)
-                      
+                   
         return runhandler
       
       

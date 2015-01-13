@@ -64,11 +64,10 @@ class SlurmRunner(ShellRunner):
             return None
                  
         
-    def run(self,cmd,runhandler=None,runsetname=None,stdoutfile=None,stderrfile=None,logger=None):
+    def run(self,cmds,runhandler=None,runsetname=None,stdoutfile=None,stderrfile=None,logger=None):
         """
         Runs a Command and returns a RunHandler.
-        If output and error options are set on the SbatchCommand, they will be set as those values
-        in the yaml file.
+        Mostly calls parent run 
         """
         if logger is None:
             logger = self.logger
@@ -76,57 +75,55 @@ class SlurmRunner(ShellRunner):
             runsetname = logger.getRunsetName()
         if runhandler is None:
             runhandler = RunHandler(logger,runsetname)
-        if isinstance(cmd,basestring):
-            cmd = Command(cmd)
-        if isinstance(cmd,SbatchCommand):
-            if cmd.output:
-                stdoutfile = cmd.output
-            if cmd.error:
-                stderrfile = cmd.error
-        runhandler.setCmd(cmd,runner=self,stdoutfile=stdoutfile,stderrfile=stderrfile)
-        runhandler.doRun()
-        return runhandler
-             
-    def execute(self,cmd,runsetname,stdoutfile=None,stderrfile=None,logger=None):
-        """
-        Method that actually executes the Command(s).
-        """
-        # For options like "help" and "usage", the parent method should be called.
-        for option in SBATCH_NOSUBMIT_OPTIONS:
-            if "--%s" % option in cmd:
-                return super(self.__class__,self).execute(cmd,runsetname,stdoutfile=stdoutfile,stderrfile=stderrfile,logger=logger)
-                
-        if logger is None:
-            logger = self.logger
-        if stdoutfile is None:
-            stdoutfile = logger.getStdOutFileName()
-        if stderrfile is None:
-            stderrfile = logger.getStdErrFileName()
-             
-         
+            
+            
+        if not isinstance(cmds,list):
+            cmds = [cmds]
+            
+                    
         hostname = socket.gethostname().split('.',1)[0]
         pid = os.fork()
         if pid == 0:
-            proc = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-            (out,err) = proc.communicate()
-            if err:
-                raise Exception("sbatch submission failed %s" % err)
-            
-            jobid = out.split()[-1]
-            
-            starttime = datetime.datetime.now()
-            runset = []
-            runlog = RunLog( jobid=jobid,
-                             cmdstring=cmd,
-                             starttime=starttime,
-                             hostname=hostname,
-                             stdoutfile=stdoutfile,
-                             stderrfile=stderrfile,
-                             runner="%s.%s" % (self.__module__, self.__class__.__name__)
-            )
-            runset.append(runlog)
-            if self.verbose > 0:
-                print runlog
+            for cmd in cmds:
+                
+                if isinstance(cmd,SbatchCommand):
+                    if cmd.output:
+                        stdoutfile = cmd.output
+                    if cmd.error:
+                        stderrfile = cmd.error
+                        
+                cmdstring = self.getCmdString(cmd)
+                                       
+                # For options like "help" and "usage", the parent method should be called.
+                for option in SBATCH_NOSUBMIT_OPTIONS:
+                    if "--%s" % option in cmdstring:
+                        return super(self.__class__,self).run(cmd,runhandler,runsetname,stdoutfile=stdoutfile,stderrfile=stderrfile,logger=logger)
+                        
+                if stdoutfile is None:
+                    stdoutfile = logger.getStdOutFileName()
+                if stderrfile is None:
+                    stderrfile = logger.getStdErrFileName()
+                    
+                proc = subprocess.Popen(cmdstring,shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                (out,err) = proc.communicate()
+                if err:
+                    raise Exception("sbatch submission failed %s" % err)
+                
+                jobid = out.split()[-1]
+                
+                starttime = datetime.datetime.now()
+                runset = []
+                runlog = RunLog( jobid=jobid,
+                                 cmdstring=cmdstring,
+                                 starttime=starttime,
+                                 hostname=hostname,
+                                 stdoutfile=stdoutfile,
+                                 stderrfile=stderrfile,
+                                 runner="%s.%s" % (self.__module__, self.__class__.__name__)
+                )
+                runset.append(runlog)
+                if self.verbose > 0:
+                    print runlog
             logger.saveRunSet(runset, runsetname)
             os._exit(0)
         else:
@@ -139,6 +136,5 @@ class SlurmRunner(ShellRunner):
                     ready = True
                 except Exception:
                     pass
-        return None
-    
+        return runhandler    
 
