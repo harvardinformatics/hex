@@ -245,7 +245,17 @@ class Command(object):
             if arg not in self.parameterdefs:
                 raise Exception("Parameter %s is not valid for this command" % arg)
              
-        self.cmdparametervalues[arg] = value    
+        self.cmdparametervalues[arg] = value 
+        
+    def getArgValue(self,arg):
+        if "parameterdefs" in self.__dict__ and arg in self.parameterdefs:
+            if arg in self.cmdparametervalues:
+                return self.cmdparametervalues[arg]
+            else:
+                return None
+        else:
+            return None
+        
          
     def getParameterDef(self,key):
         """
@@ -312,10 +322,7 @@ class Command(object):
     
     def __getattr__(self,name):
         if "parameterdefs" in self.__dict__ and name in self.parameterdefs:
-            if name in self.cmdparametervalues:
-                return self.cmdparametervalues[name]
-            else:
-                return None
+            return self.getArgValue(name)
         else:
             return self.__dict__[name]
     

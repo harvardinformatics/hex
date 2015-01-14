@@ -6,10 +6,10 @@ All rights reserved.
 
 @author: aaronkitzmiller
 """
-import sys,os
+import sys,os,time
 import unittest
 from command import Command
-from command.slurm import SlurmRunner
+from command.slurm import SlurmRunner, ShellRunner
 
 class Test(unittest.TestCase):
 
@@ -28,7 +28,7 @@ class Test(unittest.TestCase):
 
     def testSlurm(self):
         # Fetch command via parameter defs
-        confpath = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),'conf')
+        confpath = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),'conf','14.03.8')
         sbatch = Command.fetch('sbatch',path=confpath)
         self.assertTrue(sbatch.__class__.__name__ == "SbatchCommand")
         self.assertTrue(sbatch.bin == 'sbatch')
@@ -42,24 +42,51 @@ class Test(unittest.TestCase):
         # Construct a test Command
         sbatch.usage = True
         print sbatch.composeCmdString()
-        sh = SlurmRunner(verbose=1)
-        h = sh.run(sbatch)
+        slurm = SlurmRunner(verbose=1)
+        h = slurm.run(sbatch)
         self.assertTrue("Usage: sbatch" in h.stdoutstr,h.stderrstr)
         
-        # Do a simple echo
+        # Do a simple echo in sbatch
         sbatch.usage = False
-        sbatch.command = "echo 'Howdy'"
+        sbatch.command = Command("sleep 20 && echo 'Howdy'")
         sbatch.partition = "serial_requeue"
         sbatch.mem = "100"
         sbatch.time = "5"
         sbatch.output = "howdy.out"
         sbatch.error = "howdy.err"
         sbatch.scriptname = "howdy.sbatch"
-        print "Composed string is %s " % sbatch.composeCmdString()
-        h = sh.run(sbatch)
+        sbatch.name = "howdyjob"
+        #print "Composed string is %s " % sbatch.composeCmdString()
+        h = slurm.run(sbatch)
+        
+        # Run squeue in a loop to get status information
+        squeue = Command.fetch('squeue',path=confpath)
+        squeue.jobs = h.jobid
+        squeue.noheader = True
+        sh = ShellRunner(verbose=1)        
+        
+        time.sleep(5)
+        h2 = sh.run(squeue)
+        while h2.stdoutstr:
+            self.assertTrue(h.jobid in h2.stdoutstr,"out: %s\nerr: %s" % (h2.stdoutstr,h2.stderrstr))
+            time.sleep(10)
+            h2 = sh.run(squeue)
+   
         self.assertTrue("Howdy" in h.stdoutstr)
         self.assertTrue(h.stderrstr == "")
         self.assertTrue(h.exitstatus == "COMPLETED")
+        
+        #Get sacct information
+        sacct = Command.fetch('sacct',path=confpath)
+        sacct.jobs = h.jobid
+        sacct.format = "JobID,elapsed"
+        sacct.noheader = True
+        sacct.parsable = True
+        h3 = sh.run(sacct)
+        
+        self.assertTrue(h.jobid in h3.stdoutstr,h3.stdoutstr)
+        self.assertTrue("%s.batch" % h.jobid in h3.stdoutstr, h3.stdoutstr)
+        
 
 
 if __name__ == "__main__":

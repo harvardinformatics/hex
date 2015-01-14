@@ -63,6 +63,15 @@ class SlurmRunner(ShellRunner):
         else:
             return None
                  
+    def getCmdString(self,cmd):
+        """
+        If the command parameter of the sbatch command is a Command object,
+        it is converted into a string here
+        """
+        if hasattr(cmd,"command") and isinstance(cmd.command, Command):
+            cmd.command = cmd.command.composeCmdString()
+        return super(self.__class__,self).getCmdString(cmd)
+            
         
     def run(self,cmds,runhandler=None,runsetname=None,stdoutfile=None,stderrfile=None,logger=None):
         """
@@ -82,28 +91,33 @@ class SlurmRunner(ShellRunner):
             
                     
         hostname = socket.gethostname().split('.',1)[0]
+        
         pid = os.fork()
         if pid == 0:
             for cmd in cmds:
                 
+                # For options like "help" and "usage", the parent method should be called if the value is True
+                for option in SBATCH_NOSUBMIT_OPTIONS:
+                    if cmd.getArgValue(option):
+                        super(self.__class__,self).run(cmd,runhandler,runsetname,stdoutfile=stdoutfile,stderrfile=stderrfile,logger=logger)
+                        os._exit(0)
+                
                 if isinstance(cmd,SbatchCommand):
                     if cmd.output:
                         stdoutfile = cmd.output
+                    else:
+                        stdoutfile = logger.getStdOutFileName()
+                        cmd.output = stdoutfile
                     if cmd.error:
                         stderrfile = cmd.error
+                    else:
+                        stderrfile = logger.getStdErrFileName()
+                        cmd.error = stderrfile
                         
-                cmdstring = self.getCmdString(cmd)
-                                       
-                # For options like "help" and "usage", the parent method should be called.
-                for option in SBATCH_NOSUBMIT_OPTIONS:
-                    if "--%s" % option in cmdstring:
-                        return super(self.__class__,self).run(cmd,runhandler,runsetname,stdoutfile=stdoutfile,stderrfile=stderrfile,logger=logger)
+                cmdstring = self.getCmdString(cmd)                                      
                         
-                if stdoutfile is None:
-                    stdoutfile = logger.getStdOutFileName()
-                if stderrfile is None:
-                    stderrfile = logger.getStdErrFileName()
-                    
+                # Since stdout and stderr are taken care of by the sbatch script,
+                # we use subprocess.PIPE here                    
                 proc = subprocess.Popen(cmdstring,shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
                 (out,err) = proc.communicate()
                 if err:
