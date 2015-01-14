@@ -66,11 +66,25 @@ class SlurmRunner(ShellRunner):
     def getCmdString(self,cmd):
         """
         If the command parameter of the sbatch command is a Command object,
-        it is converted into a string here
+        it is converted into a string here.
+        
+        If it is an array, the commands are joined by newline into a string
         """
         if hasattr(cmd,"command") and isinstance(cmd.command, Command):
             cmd.command = cmd.command.composeCmdString()
-        return super(self.__class__,self).getCmdString(cmd)
+            return super(self.__class__,self).getCmdString(cmd)
+        elif isinstance(cmd,list):
+            cmdarr = []
+            for c in cmd:
+                if hasattr(c,"command") and isinstance(c.command, Command):
+                    c.command = c.command.composeCmdString()
+                    cmdarr.append(c.command.composeCmdString())
+                cmdarr.append(super(self.__class__,self).getCmdString(cmd))
+            return "\n".join(cmdarr)
+        else:
+            return super(self.__class__,self).getCmdString(cmd)
+                
+            
             
         
     def run(self,cmds,runhandler=None,runsetname=None,stdoutfile=None,stderrfile=None,logger=None):

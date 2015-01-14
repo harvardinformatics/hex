@@ -15,21 +15,47 @@ class Test(unittest.TestCase):
 
 
     def setUp(self):
-        for f in ["howdy.err","howdy.out","howdy.sbatch"]:
+        for f in ["howdy.err","howdy.out","howdy.sbatch","howdydoody.out","howdydoody.err","howdydoody.sbatch"]:
             try:
                 os.remove(f)
             except Exception:
                 pass
-
+        self.confpath = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),'conf','14.03.8')
 
     def tearDown(self):
         pass
+    
+    def testArrayOfCommands(self):
+        """
+        Pass and array of Command objects to an sbatch and get a script with multiple 
+        command lines
+        """
+        
+        slurm = SlurmRunner(verbose=1)
+        
+        sbatch = Command.fetch('sbatch',path=self.confpath)
+        
+        sbatch.command = [Command("echo 'Howdy'"), Command("sleep 20"), Command("echo 'Doody'")]
+        sbatch.partition = "serial_requeue"
+        sbatch.mem = "100"
+        sbatch.time = "5"
+        sbatch.output = "howdydoody.out"
+        sbatch.error = "howdydoody.err"
+        sbatch.scriptname = "howdydoody.sbatch"
+        sbatch.name = "howdydoodyjob"
+        #print "Composed string is %s " % sbatch.composeCmdString()
+        h = slurm.run(sbatch)
+        self.assertTrue("Howdy\nDoody" in h.stdoutstr,"Stdout is '%s'" % h.stdoutstr)
+        
+        sbatch.command = ["echo 'Doody'","echo 'Howdy'"]
+        h = slurm.run(sbatch)
+        self.assertTrue("Doody\nHowdy" in h.stdoutstr,"Stdout is '%s'" % h.stdoutstr)
 
 
     def testSlurm(self):
         # Fetch command via parameter defs
-        confpath = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),'conf','14.03.8')
-        sbatch = Command.fetch('sbatch',path=confpath)
+        
+        sbatch = Command.fetch('sbatch',path=self.confpath)
         self.assertTrue(sbatch.__class__.__name__ == "SbatchCommand")
         self.assertTrue(sbatch.bin == 'sbatch')
         
@@ -58,9 +84,10 @@ class Test(unittest.TestCase):
         sbatch.name = "howdyjob"
         #print "Composed string is %s " % sbatch.composeCmdString()
         h = slurm.run(sbatch)
+        self.assertTrue(isinstance(sbatch.command,Command), 'sbatch.command should be a Command object')
         
         # Run squeue in a loop to get status information
-        squeue = Command.fetch('squeue',path=confpath)
+        squeue = Command.fetch('squeue',path=self.confpath)
         squeue.jobs = h.jobid
         squeue.noheader = True
         sh = ShellRunner(verbose=1)        
@@ -77,7 +104,7 @@ class Test(unittest.TestCase):
         self.assertTrue(h.exitstatus == "COMPLETED")
         
         #Get sacct information
-        sacct = Command.fetch('sacct',path=confpath)
+        sacct = Command.fetch('sacct',path=self.confpath)
         sacct.jobs = h.jobid
         sacct.format = "JobID,elapsed"
         sacct.noheader = True
