@@ -310,7 +310,7 @@ class Command(object):
             stderr=subprocess.PIPE
         )
         stdout, stderr = p.communicate()
-        return (p.returncode,stdout.strip(),stderr.strip())
+        return [p.returncode,stdout.strip(),stderr.strip()]
         
         
     def __dir__(self):
