@@ -48,15 +48,18 @@ class Command(object):
     command or an array of command elements.
     """
     @classmethod
-    def fetch(cls,name,path=DEFAULT_PDEF_PATH):
+    def fetch(cls,name,path=DEFAULT_PDEF_PATH,jsonstr=None):
         """
-        Create a Command object using a JSON definition file
+        Create a Command object using a JSON definition file or a JSON string
         """
         if not name.endswith('.json'):
             name = name + '.json'
         pardata = {}
-        with open(os.path.join(path,name),'r') as pdeffile:
-            pardata = json.load(pdeffile)
+        if jsonstr is not None:
+            pardata = json.loads(jsonstr)
+        else:
+            with open(os.path.join(path,name),'r') as pdeffile:
+                pardata = json.load(pdeffile)
         if pardata is None:
             raise Exception("No command defined in %s" % path)
         if "cmdclass" not in pardata:
