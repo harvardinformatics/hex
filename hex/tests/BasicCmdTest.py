@@ -11,7 +11,7 @@ import unittest
 import os, sys, time
 import subprocess
 from stat import S_IXUSR, S_IWUSR, S_IRUSR
-from command import RunLog, ShellRunner, DefaultFileLogger, Command
+from hex import RunLog, ShellRunner, DefaultFileLogger, Command
 import yaml
 
 import datetime

@@ -12,14 +12,14 @@ import re
 
 import json
 
-from command import DEFAULT_PDEF_PATH, getClassFromName
+from hex import DEFAULT_PDEF_PATH, getClassFromName
 
 
 class ParameterDef(object):
     """
     Command parameter definition
     """
-    def __init__(self,name=None,required='no',switches=[],pattern=None,description="",validator='command.StringValidator',order=0):
+    def __init__(self,name=None,required='no',switches=[],pattern=None,description="",validator='hex.StringValidator',order=0):
         if name is None:
             raise Exception("ParameterDef must have a name")
         if pattern is None:

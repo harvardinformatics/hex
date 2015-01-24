@@ -9,7 +9,7 @@ All rights reserved.
 
 import unittest
 import os, sys, time
-from command import Command,ShellRunner
+from hex import Command,ShellRunner
 
 
 class Test(unittest.TestCase):
@@ -26,7 +26,7 @@ class Test(unittest.TestCase):
     def testFetch(self):
         # Fetch command via parameter defs
         # confpath = os.path.join('../../','conf')
-        argtest = Command.fetch('argtest',path=os.path.dirname(os.path.abspath(__file__)))
+        argtest = Command.load('argtest',path=os.path.dirname(os.path.abspath(__file__)))
         self.assertTrue(argtest.bin == 'argtest.py')
         argtest.option = "option-value"
         argtest.quoted_option = 'Some stuff that has spaces and "a quoted" section'

@@ -8,7 +8,7 @@ All rights reserved.
 """
 import os,subprocess,socket,time
 import datetime
-from command import DefaultFileLogger, Command, RunLog, getClassFromName
+from hex import DefaultFileLogger, Command, RunLog, getClassFromName
 
 class Env(dict):
     """
