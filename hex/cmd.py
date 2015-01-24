@@ -48,7 +48,7 @@ class Command(object):
     command or an array of command elements.
     """
     @classmethod
-    def fetch(cls,name,path=DEFAULT_PDEF_PATH,jsonstr=None):
+    def load(cls,name,path=DEFAULT_PDEF_PATH,jsonstr=None):
         """
         Create a Command object using a JSON definition file or a JSON string
         """
