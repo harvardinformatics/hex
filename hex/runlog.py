@@ -109,12 +109,7 @@ class FileLogger(object):
 class DefaultFileLogger(FileLogger):
     """
     Logs process details to /tmp
-    """
-    def __init__(self,pathname=None):
-        if pathname is None:
-            pathname = tempfile.mkdtemp("", "rcx")
-        super(DefaultFileLogger,self).__init__(pathname)
-        
+    """        
     def getStdOutFileName(self):
         """
         Returns a temp file name for stdout

@@ -5,3 +5,4 @@
 fail.sh
 long.sh
 *.sbatch
+.settings*

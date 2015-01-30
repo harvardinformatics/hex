@@ -7,6 +7,7 @@ All rights reserved.
 @author: Aaron Kitzmiller
 """
 import os,subprocess,socket,time
+import tempfile
 import datetime
 from hex import DefaultFileLogger, Command, RunLog, getClassFromName
 
@@ -37,7 +38,18 @@ class ShellRunner(object):
     Environment for the command execution can be set, including working directory.
     """
      
-    def __init__(self,logger=DefaultFileLogger(),verbose=0,usevenv=False):
+    def __init__(self,logpath=None,verbose=0,usevenv=False):
+        
+        logger = None
+        if logpath is None:
+            logpath = tempfile.mkdtemp("", "rcx")
+            logger = DefaultFileLogger(pathname=logpath)
+        elif logpath.startswith("mysql:"):
+            raise Exception("MySQL logpath not supported yet")
+        else:
+            # Assume it's a file path
+            logger = DefaultFileLogger(pathname=logpath)
+            
         self.logger = logger
         self.verbose = verbose
         self.usevenv = usevenv
