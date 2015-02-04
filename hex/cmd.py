@@ -30,8 +30,10 @@ class ParameterDef(object):
         self.pattern = pattern
         self.description = description
         self.order = order
-        validator = getClassFromName(validator)
-        self.validator = validator()
+        validatorcls = getClassFromName(validator)
+        if validatorcls is None:
+            raise Exception("Validator %s cannot be found" % validator)
+        self.validator = validatorcls()
         
     def isValid(self,value):
         """
@@ -65,6 +67,8 @@ class Command(object):
         if "cmdclass" not in pardata:
             pardata["cmdclass"] = "cmd.Command"
         cls = getClassFromName(pardata["cmdclass"])
+        if cls is None:
+            raise Exception("Command class %s for %s cannot be found." % (pardata["cmdclass"],name))
         cmd = cls()
         cmd.name        = pardata["name"]
         cmd.bin         = pardata["bin"]
@@ -73,7 +77,12 @@ class Command(object):
         
         parameterdefs = []
         for pdef in pardata["parameterdefs"]:
-            parameterdefs.append(ParameterDef(**pdef))
+            pd = None
+            try:
+                pd = ParameterDef(**pdef)
+            except Exception, e:
+                raise Exception("Unable to load %s from %s: %s" % (name,path,str(e)))
+            parameterdefs.append(pd)
         cmd.setParameterDefs(parameterdefs)
         return cmd
         

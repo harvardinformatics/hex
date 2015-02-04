@@ -46,7 +46,7 @@ def getClassFromName(classname):
             m = getattr(m, comp)            
         return m
     except ImportError:
-        print "Unable to import %s" % classname 
+        return None 
 
 
 __all__ = []
