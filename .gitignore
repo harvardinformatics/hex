@@ -6,3 +6,6 @@ fail.sh
 long.sh
 *.sbatch
 .settings*
+build*
+hex.egg*
+dist*
