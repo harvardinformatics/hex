@@ -28,6 +28,14 @@ class Test(unittest.TestCase):
         # confpath = os.path.join('../../','conf')
         argtest = Command.load('argtest',path=os.path.dirname(os.path.abspath(__file__)))
         self.assertTrue(argtest.bin == 'argtest.py')
+        
+        # Make sure parameterdefs are correctly setup
+        for pname,pdef in argtest.parameterdefs.iteritems():
+            if pdef.name == "option":
+                self.assertTrue(pdef.description == "Option with a value")
+                self.assertTrue(pdef.required == "no")
+                self.assertTrue(pdef.default == "val")
+                
         argtest.option = "option-value"
         argtest.quoted_option = 'Some stuff that has spaces and "a quoted" section'
         argtest.argument = "argument"

@@ -26,7 +26,8 @@
                 "switches" : ["--option"],
                 "pattern" : "--option=<VALUE>",
                 "required" : "no",
-                "order" : "3"
+                "order" : "3",
+                "default" : "val"
             },
             {
                 "name" : "quoted_option",

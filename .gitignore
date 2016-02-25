@@ -9,3 +9,4 @@ long.sh
 build*
 hex.egg*
 dist*
+.idea*

@@ -1,0 +1,1 @@
+- {cmdstring: ./long.sh, endtime: '2015-12-09 22:10:31', exitstatus: 1, hostname: RC-AKITZMILLER-1, jobid: 6173, runner: shellrunner.ShellRunner, starttime: '2015-12-09 22:10:30', stderrfile: /Users/aaronkitzmiller/Documents/workspace/hex/hex/tests/tmporqfOb.stderr, stdoutfile: /Users/aaronkitzmiller/Documents/workspace/hex/hex/tests/tmpz8rOkF.stdout}

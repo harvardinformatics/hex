@@ -19,7 +19,7 @@ class ParameterDef(object):
     """
     Command parameter definition
     """
-    def __init__(self,name=None,required='no',switches=[],pattern=None,description="",validator='hex.StringValidator',order=0):
+    def __init__(self,name=None,required='no',switches=[],pattern=None,description="",default=None,validator='hex.StringValidator',order=0):
         if name is None:
             raise Exception("ParameterDef must have a name")
         if pattern is None:
@@ -28,6 +28,7 @@ class ParameterDef(object):
         self.required = required
         self.switches = switches
         self.pattern = pattern
+        self.default = default
         self.description = description
         self.order = order
         validatorcls = getClassFromName(validator)
@@ -81,7 +82,7 @@ class Command(object):
             try:
                 pd = ParameterDef(**pdef)
             except Exception, e:
-                raise Exception("Unable to load %s from %s: %s" % (name,path,str(e)))
+                raise Exception("Unable to load %s: %s" % (name,path,str(e)))
             parameterdefs.append(pd)
         cmd.setParameterDefs(parameterdefs)
         return cmd
@@ -149,10 +150,31 @@ class Command(object):
         """
         Resets parameter defs to their defaults.
         """
-        for key,pdef in self.parameterdefs:
-            self.cmdparametervalues[key] = pdef.default
+        if not hasattr(self, 'cmdparametervalues'):
+            self.cmdparametervalues = {}
+            
+        for pname, pdef in self.parameterdefs.iteritems():
+            self.cmdparametervalues[pname] = pdef.default
 
-                 
+    def addToArgParser(self,parser,skips=[]):
+        '''
+        Adds parameters to argparse parser
+        Optional list of parameter names to skip
+        '''            
+        if not self.parameterdefs:
+            raise Exception('Command must have paramterdefs to utilize argparse parser')
+        
+        for pdef in self.parameterdefs:
+            required = False
+            if pdef.required and pdef.required == 'yes':
+                required = True
+            switches = pdef.switches
+            parser.add_argument(switches,
+                                help=pdef.description,
+                                default=pdef.default,
+                                required=required,
+                                dest=pdef.name,
+                                )
      
     def composeCmdString(self):
         """
@@ -160,7 +182,6 @@ class Command(object):
         has arguments they are concatenated first, then key-value pairs are added
         """
         if hasattr(self,"cmdstring"):
-            print "cmdstring is %s" % self.cmdstring
             return self.cmdstring
         cmdstring = ""
         if hasattr(self,"cmdarray") and len(self.cmdarray)  > 0:
@@ -205,7 +226,7 @@ class Command(object):
                     if pname in self.cmdparametervalues:
                         value = self.cmdparametervalues[pname]
                         
-                        if value == False:
+                        if value == False or value is None:
                             continue
                         
                         # If <VALUE> is surrounded by something (e.g. single quotes)
@@ -234,13 +255,13 @@ class Command(object):
                                 cmdstring += " %s" % optionalargre.sub("",pdef.pattern)
                             else:
                                 # Remove the question marks and substitute the VALUE
-                                cmdstring += " %s" % pdef.pattern.replace("?","").replace("<VALUE>",value)
+                                cmdstring += " %s" % pdef.pattern.replace("?","").replace("<VALUE>",str(value))
                                 
                         else:
                             if value == True:
                                 cmdstring += " %s" % pdef.pattern
                             else:
-                                cmdstring += " %s" % pdef.pattern.replace("<VALUE>",value)
+                                cmdstring += " %s" % pdef.pattern.replace("<VALUE>",str(value))
                                                     
         return cmdstring.encode('ascii','ignore')
          
@@ -277,9 +298,10 @@ class Command(object):
             return self.parameterdefs[key]
         else:
             for pdef in self.parameterdefs:
-                switches = pdef.switches
-                if key in switches:
-                    return pdef
+                if hasattr(pdef, 'switches'):
+                    switches = pdef.switches
+                    if key in switches:
+                        return pdef
             return None
         
     
