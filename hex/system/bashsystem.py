@@ -213,8 +213,9 @@ class BashSystem(object):
             cmds = [cmds]
         cmdstr = "\n".join(cmds)
 
-        # Put all the scripts and logs in the same directory
-        runid = self.runlogger.newRunId(cmd=cmdstr)
+        # If runid is none, we need to get one so that the runlogger can keep everything together
+        if runid is None:
+            runid = self.runlogger.newRunId(cmd=cmdstr)
 
         return self.executeScript(
             self.makeScriptFile(
@@ -227,3 +228,22 @@ class BashSystem(object):
             cmd=cmdstr,
             monitor=monitor,
         )
+
+    def launch(self,cmds,stdoutfile=None,stderrfile=None,runid=None,monitor=False):
+        """
+        Executes a command asynchronously by forking a call to the execute() method
+        """
+
+        # Make sure we can return the runid 
+        if isinstance(cmds,basestring):
+            cmds = [cmds]
+        cmdstr = "\n".join(cmds)
+        if runid is None:
+            runid = self.runlogger.newRunId(cmd=cmdstr)
+
+        pid = os.fork()
+        if pid == 0:
+            self.execute(cmds,stdoutfile,stderrfile,runid,monitor)
+            os._exit(0)
+        else:
+            return runid
