@@ -12,6 +12,7 @@ running of scripts
 """
 
 import os, socket, sys, logging
+import time
 from subprocess import Popen,PIPE
 import tempfile
 from textwrap import TextWrapper
@@ -65,6 +66,8 @@ class BashSystem(object):
         """
         Formats a string as a bash comment
         """
+        # Replace newlines with a \n#
+        comment = comment.replace("\n","\n# ")
         textwidth = 60  # 60 char comments
         wrapper = TextWrapper(replace_whitespace=False,width=textwidth,initial_indent="# ",subsequent_indent="# ")
         if comment is None or comment.strip() == "":
@@ -108,6 +111,12 @@ class BashSystem(object):
         if scriptpath is None:
             if runid is not None and runid.strip() != "":
                 scriptpath = self.runlogger.getScriptPath(runid,self.scriptsuffix)
+
+                # Create the directory if necessary
+                scriptdir = os.path.dirname(scriptpath)
+                if not os.path.exists(scriptdir):
+                    os.makedirs(scriptdir)
+
                 scripth = open(scriptpath,'w')
             else:
                 scripth = tempfile.NamedTemporaryFile(suffix=self.scriptsuffix,delete=False)
@@ -182,6 +191,8 @@ class BashSystem(object):
             while proc.poll() is None:
                 sys.stdout.write(stdouth.readline())
                 sys.stderr.write(stderrh.readline())
+            sys.stdout.flush()
+            sys.stderr.flush()
         else:
             proc.wait()
 
@@ -231,7 +242,9 @@ class BashSystem(object):
 
     def launch(self,cmds,stdoutfile=None,stderrfile=None,runid=None,monitor=False):
         """
-        Executes a command asynchronously by forking a call to the execute() method
+        Executes a command asynchronously by forking a call to the execute() method.  
+        Waits until runlog has been initiated before it returns.
+        If after 10 attempts, the runlog is still not created an exception is thrown.
         """
 
         # Make sure we can return the runid 
@@ -246,4 +259,16 @@ class BashSystem(object):
             self.execute(cmds,stdoutfile,stderrfile,runid,monitor)
             os._exit(0)
         else:
-            return runid
+            max_attempts = 10
+            attempts = 0
+            sleepytime = 5
+            error = ""
+            while attempts <= max_attempts:
+                try:
+                    self.runlogger.get(runid)
+                    return runid
+                except Exception as e:
+                    error = str(e)
+                    time.sleep(sleepytime)
+                    attempts += 1
+            raise Exception("Launch of command(s) %s has not created a valid runlog: %s" % (str(cmds),error))

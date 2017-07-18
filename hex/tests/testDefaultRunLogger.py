@@ -18,14 +18,14 @@ from datetime import datetime
 NON_DEFAULT_RUNLOG_PATH = "/tmp/runlogs"
 
 
-@unittest.skipIf(len(os.listdir(DEFAULT_RUNLOG_PATH)) > 0, "You have runlogs in %s.  Clear these out before running this test." % DEFAULT_RUNLOG_PATH)
+@unittest.skipIf(os.path.exists(DEFAULT_RUNLOG_PATH) and len(os.listdir(DEFAULT_RUNLOG_PATH)) > 0, "You have runlogs in %s.  Clear these out before running this test." % DEFAULT_RUNLOG_PATH)
 class DefaultRunLoggerTest(unittest.TestCase):
 
     def cleanDirectories(self):
         for d in [NON_DEFAULT_RUNLOG_PATH,DEFAULT_RUNLOG_PATH]:
             if d.strip() == "" or d.strip() == "/":
                 raise Exception("What are you thinking?")
-            os.system("rm -rf %s/*" % d)
+            os.system("rm -rf %s" % d)
 
     def setUp(self):
         self.cleanDirectories()
