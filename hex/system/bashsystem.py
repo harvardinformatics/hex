@@ -36,7 +36,7 @@ class BashSystem(object):
 
     If interpreter is specified, it should be the full path.
     """
-    def __init__(self,interpreter="/bin/bash",scriptsuffix=".sh",runlogger=None):
+    def __init__(self,interpreter="/bin/bash",scriptsuffix=".sh",runlogger=None,**kwargs):
         self.interpreter = interpreter
         self.scriptsuffix = scriptsuffix
 
