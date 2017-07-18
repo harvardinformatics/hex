@@ -11,16 +11,32 @@ Directly runs a command line string without embellishment.
 @copyright : 2017 The Presidents and Fellows of Harvard College. All rights reserved.
 @license   : GPLv2
 """
-from hex.system import getSystem
+import argparse
+import logging
+from hex.system import getAvailableSystems,getSystem
+
+logger = logging.getLogger("hex")
+AVAILABLE_SYSTEMS = getAvailableSystems()
 
 
 def getParameterDefs():
 
     parameterdefs = [
         {
-            'name'      : 'CMD_SPEC',
-            'help'      : 'Command specification',
+            "switches"  : "--system",
+            "help"      : "Script building and execution system.  Available systems: %s" % ", ".join(AVAILABLE_SYSTEMS.keys()),
+            "name"      : "SYSTEM",
+            "default"   : "bash",
         },
+        {
+            "switches"  : "CMD_SPEC",
+            "help"      : "Command specification",
+        },
+        {
+            "switches"  : "CMD_ARGS",
+            "help"      : "Command arguments",
+            "nargs"     : argparse.REMAINDER,
+        }
     ]
     return parameterdefs
 
@@ -29,6 +45,10 @@ def hexexec(args):
     """
     Direct execution of the command with no argument processing
     """
-    system  = getSystem(args)
-    cmd     = ' '.join(args['CMD_SPEC'],args['CMD_ARGS'])
+
+    # Create the system
+    systemkey = args["SYSTEM"]
+    system = getSystem(systemkey)
+
+    cmd     = " ".join([args["CMD_SPEC"]] + args["CMD_ARGS"])
     system.execute(cmd)

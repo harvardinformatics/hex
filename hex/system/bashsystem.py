@@ -191,6 +191,12 @@ class BashSystem(object):
             while proc.poll() is None:
                 sys.stdout.write(stdouth.readline())
                 sys.stderr.write(stderrh.readline())
+            try:
+                sys.stdout.write(stdouth.readline())
+                sys.stderr.write(stderrh.readline())
+            except Exception:
+                pass
+
             sys.stdout.flush()
             sys.stderr.flush()
         else:
