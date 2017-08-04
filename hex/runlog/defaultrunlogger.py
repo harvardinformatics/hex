@@ -28,7 +28,7 @@ logger = logging.getLogger("hex")
 class DefaultRunLogger(object):
     """
     Saves RunLogs as json documents in ~/.hex/runlogs/<runid> by default
-    """        
+    """
     def __init__(self,pathname=DEFAULT_RUNLOG_PATH):
         self.dateFormatString = "%Y-%m-%d %H:%M:%S"
         self.suffix = ".json"
@@ -36,7 +36,7 @@ class DefaultRunLogger(object):
 
         if not os.path.exists(self.pathname):
             os.makedirs(self.pathname)
-        
+
     def getRunPath(self,runid,resource,suffix):
         """
         Get a path name based on the resource and suffix.
@@ -74,7 +74,7 @@ class DefaultRunLogger(object):
 
     def newRunId(self,cmd=None):
         """
-        Create a unique run id.  Uses tempfile to create a directory in the path.  
+        Create a unique run id.  Uses tempfile to create a directory in the path.
 
         If cmd is set, it will use the first 3-8 chars ([a-zA-Z_0-9-])
         as part of the directory name.
@@ -95,7 +95,7 @@ class DefaultRunLogger(object):
         Reads the RunLog from a json file and returns
         """
         runlogpath = self.getRunLogPath(runid)
-        
+
         with open(runlogpath,"r") as f:
             runlogdata = json.load(f)
             if runlogdata is None:
@@ -105,7 +105,7 @@ class DefaultRunLogger(object):
                     runlogdata[key] = datetime.strptime(runlogdata[key],self.dateFormatString)
         runlog = RunLog(**runlogdata)
         return runlog
-  
+
     def save(self,runlog):
         """
         Saves RunLog to a json file
@@ -122,5 +122,5 @@ class DefaultRunLogger(object):
 
         with open(runlogfile,"w") as f:
             json.dump(runlog,f,indent=4)
-            
+
         return runlog["runid"]

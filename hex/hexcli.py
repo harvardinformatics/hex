@@ -20,7 +20,7 @@ from hex import UserException
 
 SUBCOMMAND_MODULES = [
     ("exec","Execute a command directly, without argument processing","hexexec"),  # subcommand name, description, modulename
-]  
+]
 
 logger = logging.getLogger("hex")
 
@@ -32,17 +32,18 @@ def applyParameterDefToArgumentParser(parameterdef,parser):
     switches = parameterdef.pop("switches")
     if not isinstance(switches, list):
         switches = [switches]
-        
-    # Gotta take it off for add_argument 
+
+    # Gotta take it off for add_argument
     # Positional arguments will not have a name
     name = None
+
     if "name" in parameterdef:
         name = parameterdef.pop("name")
         parameterdef["dest"] = name
     if "default" in parameterdef:
         parameterdef["help"] += "  [default: %s]" % parameterdef["default"]
     parser.add_argument(*switches,**parameterdef)
-    
+
     # Gotta put it back on for later
     if name is not None:
         parameterdef["name"] = name
@@ -63,6 +64,12 @@ def initArgs():
             'help'      : 'Log level (e.g. DEBUG, INFO)',
             'default'   : 'INFO',
         },
+        {
+            'name'      : 'RUNLOGGER',
+            'switches'  : ['--runlogger'],
+            'required'  : False,
+            'help'      : 'Optional, logging in addition to default file logging'
+        }
     ]
 
     # Check for environment variable values
@@ -76,7 +83,7 @@ def initArgs():
 
     parser = ArgumentParser(description=description,formatter_class=RawDescriptionHelpFormatter)
     parser.add_argument('-V', '--version', action='version', version=version)
-    
+
     # Use the parameterdefs for the ArgumentParser
     for parameterdef in parameterdefs:
         applyParameterDefToArgumentParser(parameterdef,parser)
@@ -98,7 +105,7 @@ def initArgs():
         if not attr.startswith('__') and not callable(getattr(args,attr)):
             argdict[attr] = getattr(args,attr)
     return argdict
-       
+
 
 def main():
     """
@@ -119,7 +126,6 @@ def main():
             if argdict["SUBCOMMAND"] == subcommandstr:
                 modulename = 'hex.subcommand.%s' % modulestr
                 func = getattr(__import__(modulename,globals(),locals(),[modulestr]),modulestr)
-
                 return func(argdict)
 
     except Exception as e:
