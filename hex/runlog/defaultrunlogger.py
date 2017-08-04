@@ -84,6 +84,11 @@ class DefaultRunLogger(object):
             match = re.search(r"([a-zA-Z_0-9-]{3,8})",cmd)
             if match:
                 prefix = match.group(0)
+        # TODO: I find it much easier to find the log I just created if I
+        # include the date in the runid
+        now = datetime.now()
+        short_datetime = "%y%m%d%H%M%S"
+        prefix = now.strftime(short_datetime) + prefix
         tname = tempfile.mkdtemp(prefix=prefix,dir=self.pathname)
 
         runid = os.path.split(tname)[1]
@@ -119,7 +124,6 @@ class DefaultRunLogger(object):
                 runlog[key] = runlog[key].strftime(self.dateFormatString)
 
         runlogfile = self.getRunLogPath(runlog["runid"])
-
         with open(runlogfile,"w") as f:
             json.dump(runlog,f,indent=4)
 
