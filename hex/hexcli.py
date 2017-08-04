@@ -68,7 +68,7 @@ def initArgs():
             'name'      : 'RUNLOGGER',
             'switches'  : ['--runlogger'],
             'required'  : False,
-            'help'      : 'Optional, logging in addition to default file logging'
+            'help'      : 'Optional, logging in addition to default file logging (e.g. sql)'
         }
     ]
 

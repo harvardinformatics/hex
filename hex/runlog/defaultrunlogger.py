@@ -84,8 +84,7 @@ class DefaultRunLogger(object):
             match = re.search(r"([a-zA-Z_0-9-]{3,8})",cmd)
             if match:
                 prefix = match.group(0)
-        # TODO: I find it much easier to find the log I just created if I
-        # include the date in the runid
+        # add date to the runid to make it human searchable
         now = datetime.now()
         short_datetime = "%y%m%d%H%M%S"
         prefix = now.strftime(short_datetime) + prefix
