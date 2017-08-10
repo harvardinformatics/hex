@@ -26,29 +26,43 @@ class SQLRunLogger(DefaultRunLogger):
     Saves RunLogs to sql db in addition to default behavior
     """
     def __init__(self):
-        self.session = self.create_db()
         super(SQLRunLogger, self).__init__()
 
     def save(self, runlog):
         # save command to file with default
         ret = super(SQLRunLogger, self).save(runlog)
         # log to db
-        runlog = Log(**runlog)
-        self.session.add(runlog)
-        self.session.commit()
+        try:
+            self.session = self.create_db()
+            runlog = SQLRunLog(**runlog)
+            self.session.add(runlog)
+            self.session.commit()
+        except Exception as e:
+            print('Error logging to db, default logging to file only: ' + str(e))
         return ret
 
     def create_db(self):
         # sqllite in memory will not remember rows between runs
         # TODO: use mysql
-        self.engine = create_engine('sqlite:///:memory:', echo=True)
+        self.engine = create_engine('sqlite:///:memory:')
         Base.metadata.create_all(self.engine)
         Session = sessionmaker(bind=self.engine)
         return Session()
 
+    def get_row(self, runid):
+        row_dict = {}
+        if runid:
+            row = (self.session.query(SQLRunLog)
+                    .filter_by(runid = runid).first())
+            if row:
+                row_dict = row.__dict__
+                # remove non column, sqlalchemy object returns
+                row_dict.pop('_sa_instance_state', None)
+        return row_dict
+
 Base = declarative_base()
-class Log(Base):
-    __tablename__ = 'log'
+class SQLRunLog(Base):
+    __tablename__ = 'runlog'
 
     id = Column(Integer, primary_key=True)
     status = Column(String)
@@ -57,7 +71,7 @@ class Log(Base):
     stderrfile = Column(String)
     hostname = Column(String)
     system = Column(String)
-    jobid = Column(String)
+    jobid = Column(Integer)
     scriptfilepath = Column(String)
     runid = Column(String)
     starttime = Column(String)
