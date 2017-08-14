@@ -19,7 +19,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, DateTime
 from sqlalchemy.orm import sessionmaker
-from ConfigParser import SafeConfigParser
+from hex import config
 
 class SQLRunLogger(DefaultRunLogger):
 
@@ -31,17 +31,7 @@ class SQLRunLogger(DefaultRunLogger):
         self.set_db(db)
 
     def set_db(self, db):
-        db_params = {}
-        # parse db config
-        # TODO: if we use these configs for command params too then we might
-        # create a class that loads the configs
-        parser = SafeConfigParser()
-        parser.read('default.ini')
-        parser.read('secret.ini')
-        db_params['server'] = parser.get('DB', 'server')
-        db_params['database'] = parser.get('DB', 'database')
-        db_params['user'] = parser.get('DB', 'user')
-        db_params['password'] = parser.get('DB', 'password')
+        db_params = config.get_config('DB')
         default = 'mysql://{user}:{password}@{server}/{database}'.format(**db_params)
         if db == 'default':
             self.db = default

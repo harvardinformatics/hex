@@ -17,6 +17,7 @@ import logging
 from argparse import ArgumentParser,RawDescriptionHelpFormatter
 from hex import __version__ as version
 from hex import UserException
+from hex import config
 
 SUBCOMMAND_MODULES = [
     ("exec","Execute a command directly, without argument processing","hexexec"),  # subcommand name, description, modulename
@@ -71,6 +72,7 @@ def initArgs():
             'help'      : 'Optional, logging in addition to default file logging (e.g. sql)'
         }
     ]
+    parameterdefs = config.set_defaults(parameterdefs)
 
     # Check for environment variable values
     # Set to 'default' if they are found
