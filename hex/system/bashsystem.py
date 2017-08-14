@@ -3,7 +3,7 @@
 
 """
 Manages the interactions with a bash-based system, including the construction and
-running of scripts 
+running of scripts
 
 @date      : 2017-06-20 13:29:55
 @author    : Aaron Kitzmiller (aaron_kitzmiller@harvard.edu)
@@ -31,7 +31,7 @@ logger = logging.getLogger("hex")
 
 class BashSystem(object):
     """
-    Basic bash interpreter system. 
+    Basic bash interpreter system.
 
     If no runlogger is specified the DefaultRunLogger is used.
 
@@ -84,7 +84,7 @@ class BashSystem(object):
         """
         Composes a bash script string using the kwargs
 
-        Base system uses only a 'content' kwarg.  
+        Base system uses only a 'content' kwarg.
         A 'comment' kwarg is strongly recommended.
 
         Subclasses should call this after composing a 'content' string
@@ -128,7 +128,7 @@ class BashSystem(object):
 
     def executeScript(self,scriptfilepath,runid=None,stdoutfile=None,stderrfile=None,cmd=None,monitor=True):
         """
-        Launches the script file, waits for it to complete,  
+        Launches the script file, waits for it to complete,
         and logs it with the run logger.  Returns the runid assigned by the RunLogger.
 
         If runid is not set, the RunLogger will generate a new one.
@@ -217,10 +217,10 @@ class BashSystem(object):
         """
         Execute a command synchronously.
 
-        cmd may be either a string or a list.  A list is 
+        cmd may be either a string or a list.  A list is
         treated as several commands.
 
-        Creates the script file from the command(s), runs the command, 
+        Creates the script file from the command(s), runs the command,
         and logs it.
 
         If monitor is True, then stdout and stderr will be printed to the console.
@@ -248,12 +248,12 @@ class BashSystem(object):
 
     def launch(self,cmds,stdoutfile=None,stderrfile=None,runid=None,monitor=False):
         """
-        Executes a command asynchronously by forking a call to the execute() method.  
+        Executes a command asynchronously by forking a call to the execute() method.
         Waits until runlog has been initiated before it returns.
         If after 10 attempts, the runlog is still not created an exception is thrown.
         """
 
-        # Make sure we can return the runid 
+        # Make sure we can return the runid
         if isinstance(cmds,basestring):
             cmds = [cmds]
         cmdstr = "\n".join(cmds)

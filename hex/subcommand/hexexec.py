@@ -14,6 +14,7 @@ Directly runs a command line string without embellishment.
 import argparse
 import logging
 from hex.system import getAvailableSystems,getSystem
+from hex.runlog import getRunLogger
 
 logger = logging.getLogger("hex")
 AVAILABLE_SYSTEMS = getAvailableSystems()
@@ -48,7 +49,7 @@ def hexexec(args):
 
     # Create the system
     systemkey = args["SYSTEM"]
-    system = getSystem(systemkey)
-
+    runlogger = getRunLogger(runlogger = args["RUNLOGGER"])
+    system = getSystem(systemkey, runlogger = runlogger)
     cmd     = " ".join([args["CMD_SPEC"]] + args["CMD_ARGS"])
     system.execute(cmd)
