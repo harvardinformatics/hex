@@ -10,3 +10,4 @@ build*
 hex.egg*
 dist*
 .idea*
+secret.ini

@@ -17,16 +17,38 @@ SQL RunLogger
 from hex.runlog.defaultrunlogger import DefaultRunLogger
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, DateTime
 from sqlalchemy.orm import sessionmaker
+from ConfigParser import SafeConfigParser
 
 class SQLRunLogger(DefaultRunLogger):
 
     """
     Saves RunLogs to sql db in addition to default behavior
     """
-    def __init__(self):
+    def __init__(self, db = 'default'):
         super(SQLRunLogger, self).__init__()
+        self.set_db(db)
+
+    def set_db(self, db):
+        db_params = {}
+        # parse db config
+        # TODO: if we use these configs for command params too then we might
+        # create a class that loads the configs
+        parser = SafeConfigParser()
+        parser.read('default.ini')
+        parser.read('secret.ini')
+        db_params['server'] = parser.get('DB', 'server')
+        db_params['database'] = parser.get('DB', 'database')
+        db_params['user'] = parser.get('DB', 'user')
+        db_params['password'] = parser.get('DB', 'password')
+        default = 'mysql://{user}:{password}@{server}/{database}'.format(**db_params)
+        if db == 'default':
+            self.db = default
+        elif db == 'test': # use sqlite for testing
+            self.db = 'sqlite:///:memory:'
+        else:
+            self.db = db
 
     def save(self, runlog):
         # save command to file with default
@@ -44,7 +66,7 @@ class SQLRunLogger(DefaultRunLogger):
     def create_db(self):
         # sqllite in memory will not remember rows between runs
         # TODO: use mysql
-        self.engine = create_engine('sqlite:///:memory:')
+        self.engine = create_engine(self.db)
         Base.metadata.create_all(self.engine)
         Session = sessionmaker(bind=self.engine)
         return Session()
@@ -65,18 +87,18 @@ class SQLRunLog(Base):
     __tablename__ = 'runlog'
 
     id = Column(Integer, primary_key=True)
-    status = Column(String)
-    result = Column(String)
-    cmd = Column(String)
-    stderrfile = Column(String)
-    hostname = Column(String)
-    system = Column(String)
+    status = Column(String(255))
+    result = Column(String(255))
+    cmd = Column(String(255))
+    stderrfile = Column(String(255))
+    hostname = Column(String(100))
+    system = Column(String(100))
     jobid = Column(Integer)
-    scriptfilepath = Column(String)
-    runid = Column(String)
-    starttime = Column(String)
-    endtime = Column(String)
-    interpreter = Column(String)
-    stdoutfile = Column(String)
+    scriptfilepath = Column(String(255))
+    runid = Column(String(100))
+    starttime = Column(DateTime)
+    endtime = Column(DateTime)
+    interpreter = Column(String(100))
+    stdoutfile = Column(String(255))
 
 
