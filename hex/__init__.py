@@ -12,7 +12,6 @@ DEFAULT_PDEF_PATH = "./config"
 logging.basicConfig()
 config = Config()
 
-
 def getClassFromName(classname):
     """
     Utility that will return the class object for a full qualified
