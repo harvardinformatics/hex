@@ -7,7 +7,8 @@
 import logging
 from config import Config
 
-__version__ = "0.0.1"
+__version__ = "0.2.0"
+
 DEFAULT_PDEF_PATH = "./config"
 logging.basicConfig()
 config = Config()

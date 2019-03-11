@@ -226,7 +226,7 @@ class BashSystem(object):
         If monitor is True, then stdout and stderr will be printed to the console.
         """
         # Setup command string
-        if isinstance(cmds,basestring):
+        if isinstance(cmds,str):
             cmds = [cmds]
         cmdstr = "\n".join(cmds)
 
@@ -254,7 +254,7 @@ class BashSystem(object):
         """
 
         # Make sure we can return the runid
-        if isinstance(cmds,basestring):
+        if isinstance(cmds,str):
             cmds = [cmds]
         cmdstr = "\n".join(cmds)
         if runid is None:

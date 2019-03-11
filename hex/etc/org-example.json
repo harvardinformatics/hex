@@ -1,0 +1,41 @@
+{
+    "volumes" : {
+        "comment" : "Default type for volumes is LocalVolume?  Default staging between LocalVolumes is RsyncStaging.",
+        "local-scratch" : {
+            "path" : "/scratch"
+        },
+        "shared-scratch" : {
+            "path" : "/n/regal"
+        },
+        "blastdb" : {
+            "path" : "/n/regal/informatics_public"
+        }
+    },
+    "applications" : {
+        "blastn" : {
+            "enable" : "export BLASTDB=\":blastdb:\"\nmodule load ncbi-blast/2.2.31+-fasrc01"
+        },
+        "bcl2fastq2" : {
+            "enable" : "module load gcc/4.8.2-fasrc01 bcl2fastq2/2.19.1-fasrc01"
+        },
+        "Trinity" : {
+            "enable" : "module load trinity/2.3.2-fasrc01"
+        },
+        "Trinity-2.3.2" : {
+            "enable" : "module load trinity/2.3.2-fasrc01"
+        },
+        "Trinity-2.2.0" : {
+            "enable" : "module load trinity/2.2.0-fasrc01"
+        }
+    },
+    "runlogger" : {
+        "class" : "SQLRunLogger",
+        "kwargs" : {
+            "username" : "",
+            "password" : "",
+            "hostname" : "",
+            "database" : "",
+            "pathname" : "~/.hex/runlogs"
+        }
+    }
+}

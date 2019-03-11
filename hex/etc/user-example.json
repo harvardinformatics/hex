@@ -1,0 +1,49 @@
+{
+    "orgs" : "https://informatics.fas.harvard.edu/hex/org",
+    "defaults" : {
+        "org" : "/odyssey/giribet",
+        "volumes" : {
+            "primary-root" : {
+                "path" : ":org-primary-root:/tauanajc"
+            },
+            "working-root" : {
+                "path" : ":org-working-root:/tauanajc"
+            },
+            "comet-working" : {
+                "comment" : "CometVolume is a subclass of GlobusVolume? Or maybe just uses GlobusStaging",
+                "class" : "CometVolume",
+                "kwargs" : {
+                    "path" : "/oasis/scratch/comet",
+                    "endpoint" : "xsede#comet",
+                    "mover-path" : "/oasis/scratch-comet"
+                }
+            }
+        }
+    },
+    "projects" : {
+        "FISSURELLIDAE" : {
+            "comment" : "Default project primary volume (primary-root/project-name), default working dir (working-root/project-name)"
+        },
+        "GASTROPODA" : {
+            "comment" : "NoopStaging class (ie does not do staging) and a non-default primary volume",
+            "staging" : {
+                "class" : "NoopStaging",
+                "primary" : "/n/Giribet_Lab/GASTROPODA"
+            }
+        },
+        "TARDIGRADES" : {
+            "comment" : "Globus staging class, default primary volume, globus endpoint as working directory.",
+            "staging" : { 
+                "class" : "GlobusStaging",
+                "working" : "ddb59aef-6d04-11e5-ba46-22000b92c6ec"
+            }
+
+        }
+    },
+    "applications" : {
+        "Trinity" : {
+            "comment" : "Non-default version",
+            "enable" : "module load trinity/2.2.2-fasrc01"
+        }
+    }
+}
