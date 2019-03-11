@@ -5,7 +5,7 @@
 @copyright : 2017 The Presidents and Fellows of Harvard College. All rights reserved.
 """
 import logging
-from config import Config
+from .config import Config
 
 __version__ = "0.2.0"
 
