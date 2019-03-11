@@ -39,7 +39,7 @@ class DefaultRunLoggerTest(unittest.TestCase):
         """
         runlogger = DefaultRunLogger()
         runid = runlogger.newRunId()
-        self.assertTrue(runid.startswith("tmp"),"Weird run id %s" % runid)
+        self.assertTrue('tmp' in runid, "Weird run id %s" % runid)
 
     def testNewRunIdCmd(self):
         """
@@ -48,13 +48,13 @@ class DefaultRunLoggerTest(unittest.TestCase):
         runlogger = DefaultRunLogger()
         cmd = "sed"
         runid = runlogger.newRunId(cmd)
-        self.assertTrue(runid.startswith(cmd),"Runid should start with %s: %s" % (cmd,runid))
+        self.assertTrue(cmd in runid,"Runid should include %s: %s" % (cmd,runid))
 
         cmd = "asdfghjklm"
         runid = runlogger.newRunId(cmd)
         self.assertFalse(runid.startswith(cmd),"Runid should not include all of %s: %s" % (cmd,runid))
-        self.assertTrue(runid.startswith(cmd[0:8]),"Runid should start with %s: %s" % (cmd[0:8],runid))
-        
+        self.assertTrue(cmd[0:8] in runid,"Runid should include %s: %s" % (cmd[0:8],runid))
+
     def testGetRunLogById(self):
         """
         Save and retrieve a runlog by id using default runlog path with the DefaultRunLogger
@@ -77,7 +77,7 @@ class DefaultRunLoggerTest(unittest.TestCase):
 
         # Make sure the data retrieved is correct
         retrieved = runlogger.get(runid)
-        for k,v in runlogdata.iteritems():
+        for k,v in runlogdata.items():
             self.assertTrue(retrieved[k] == v,"Run log value for %s is incorrect: %s" % (k,str(v)))
 
     def testRunLogSavePath(self):
@@ -103,7 +103,7 @@ class DefaultRunLoggerTest(unittest.TestCase):
 
         # Make sure the data retrieved is correct
         retrieved = runlogger.get(runid)
-        for k,v in runlogdata.iteritems():
+        for k,v in runlogdata.items():
             self.assertTrue(retrieved[k] == v,"Run log value for %s is incorrect: %s" % (k,str(v)))
 
     def testCreatePathsByRunId(self):

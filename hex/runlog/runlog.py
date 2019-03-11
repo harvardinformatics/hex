@@ -18,32 +18,32 @@ class RunLog(dict):
     """
     Just a dictionary with some required fields
     """
-    
+
     def __init__(self,**kwargs):
         self.required = ["jobid","hostname","scriptfilepath","interpreter","starttime","system"]
         for key in self.required:
             if key not in kwargs:
                 raise Exception("Run log must have a %s key" % key)
-        for k,v in kwargs.iteritems():
+        for k,v in kwargs.items():
             self[k] = v
-                           
+
     def getStdOutHandle(self):
         """
         Get a file handle for stdout
         """
         if "stdoutfile" not in self or self["stdoutfile"] == "" or not os.path.exists(self["stdoutfile"]):
             return None
-        
+
         f = open(self["stdoutfile"],"r")
         return f
-        
+
     def getStdErrHandle(self):
         """
         Get a file handle for stderr
         """
         if "stderrfile" not in self or self["stderrfile"] == "" or not os.path.exists(self["stderrfile"]):
             return None
-        
+
         f = open(self["stderrfile"],"r")
         return f
 
@@ -53,6 +53,6 @@ class RunLog(dict):
         """
         if "scriptfilepath" not in self or self["scriptfilepath"] == "" or not os.path.exists(self["scriptfilepath"]):
             return None
-        
+
         f = open(self["scriptfilepath"],"r")
         return f
