@@ -35,6 +35,9 @@ setup(
         "Development Status :: 3 - Alpha",
         "Topic :: Utilities",
     ],
+    install_requires=[
+        'sqlalchemy'
+    ],
     entry_points={
         'console_scripts': [
             'hex=hex.cli:main',
